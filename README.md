@@ -17,7 +17,7 @@ npm i @xoperations/temporal-networks
 
 ## Usage
 
-TODO
+TBD
 
 ## Development
 
@@ -28,10 +28,6 @@ TODO
 3. Install `make`
   * Linux/Unix: it's probably already on your system. If not, google "install make on [your OS here]"
   * Windows: http://gnuwin32.sourceforge.net/packages/make.htm
-
-### Run Locally without Publishing
-
-TODO
 
 ### Testing
 
