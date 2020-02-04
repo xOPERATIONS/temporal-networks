@@ -4,6 +4,8 @@ Implements Simple Temporal Networks in Rust and compiles to WASM for use in any 
 
 [Library documentation](https://xoperations.github.io/temporal-networks/lib/stn/)
 
+[![npm version](https://img.shields.io/npm/v/@xoperations/temporal-networks.svg?style=flat)](https://npmjs.org/package/xoperations/temporal-networks "View this project on npm")
+
 ## What is a Simple Temporal Network?
 
 * See [here](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/STNs_for_EVAs.pdf) for a tutorial
