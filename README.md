@@ -35,13 +35,18 @@ TODO
 
 ### Testing
 
-* Test Rust, WASM, and JS
+* Test everything - Rust, WASM, and JS
   ```sh
-  make test
+  make test -k
   ```
+  (You don't have to use `-k` but it ensures all tests run even if an earlier test fails (see [`make` documentation](https://www.gnu.org/software/make/manual/html_node/Errors.html)))
 * Just test Rust
   ```sh
   make test.rust
+  ```
+* Just test WASM and JS
+  ```sh
+  make test.js
   ```
 
 ### Publishing

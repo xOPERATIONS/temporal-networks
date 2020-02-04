@@ -17,8 +17,12 @@ doc.open:
 test.rust:
 	cargo test && wasm-pack test --node
 
+# target: test.js - run tests against WASM builds
+test.js: build
+	npm t
+
 # target: test - test Rust, WASM, and JS
-test: test.rust
+test: test.rust test.js
 
 # target: build - build a JS agnostic package
 build: test
