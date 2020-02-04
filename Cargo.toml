@@ -1,6 +1,6 @@
 [package]
-name = "stn"
-version = "0.1.0"
+name = "temporal-networks"
+version = "0.1.2"
 authors = ["Cameron Pittman <cameron.w.pittman@gmail.com>"]
 edition = "2018"
 

@@ -21,12 +21,12 @@ test.rust:
 test: test.rust
 
 # target: build - build a JS agnostic package
-build:
-	wasm-pack build
+build: test
+	wasm-pack build --scope xoperations --target nodejs --out-name index
 
 # target: publish - publish to GitHub registry
-publish: doc
-	wasm-pack publish
+publish: build
+	wasm-pack publish --access=public
 
 # target: help - display callable targets.
 help:

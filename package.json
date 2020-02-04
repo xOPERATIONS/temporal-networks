@@ -1,6 +1,0 @@
-{
-  "name": "temporal-networks",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  }
-}
