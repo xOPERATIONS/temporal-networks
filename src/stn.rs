@@ -17,7 +17,7 @@ fn default_execution_uncertainty() -> f64 {
 pub struct RegistrationOptions {
   /// Are distances in the form of [x, x] (keyed by edges[].minutes) instead of [lower, upper]? eg. set to true if edges are in the form of `{ "source": 1, "target": 2, "minutes": 5}`. Set to false if edges are in the form of `{ "source": 1, "target": 2, "interval": [4, 6] }`. Default false
   implicit_intervals: bool,
-  /// How much uncertainty should be applied if interval definitions are implicit (see above). Value must be between 0 and 1 inclusive. Defaults to 0.1 (10%)
+  /// The amount of uncertainty that should be applied if interval definitions are implicit (see above). Value must be between 0 and 1 inclusive. Defaults to 0.1 (10%)
   #[serde(default = "default_execution_uncertainty")]
   execution_uncertainty: f64,
 }
