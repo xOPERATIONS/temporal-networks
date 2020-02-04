@@ -2,7 +2,7 @@
 
 Implements Simple Temporal Networks in Rust and compiles to WASM for use in any JS project.
 
-[Library documentation](https://xoperations.github.io/temporal-networks/stn/)
+[Library documentation](https://xoperations.github.io/temporal-networks/lib/stn/)
 
 ## What is a Simple Temporal Network?
 

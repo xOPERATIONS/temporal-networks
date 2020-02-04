@@ -1,3 +1,1 @@
-Testing
-
-* [STN](./stn/)
+Head [here](./lib/stn/) for library documentation.

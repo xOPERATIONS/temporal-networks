@@ -7,9 +7,9 @@ all: build
 
 # target: doc - create docs
 doc:
-	cargo doc --no-deps --document-private-items && cp -r target/doc/* docs
+	cargo doc --no-deps --document-private-items && cp -r target/doc/* docs/lib
 
-# target: doc.open - create docs and open in a web browser
+# target: doc.open - open docs in a web browser
 doc.open:
 	cargo doc --no-deps --document-private-items --open
 
@@ -25,7 +25,7 @@ build:
 	wasm-pack build
 
 # target: publish - publish to GitHub registry
-publish:
+publish: doc
 	wasm-pack publish
 
 # target: help - display callable targets.
