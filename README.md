@@ -6,14 +6,18 @@ Implements Simple Temporal Networks in Rust and compiles to WASM for use in any 
 
 ## What is a Simple Temporal Network?
 
-* See [here](./docs/references/STNs_for_EVAs.pdf) for a tutorial
-* There are additional papers in [docs/references](./docs/references/)
+* See [here](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/STNs_for_EVAs.pdf) for a tutorial
+* There are additional papers in [docs/references](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/)
 
 ## Installation
 
 ```sh
-npm i # TODO
+npm i @xoperations/temporal-networks
 ```
+
+## Usage
+
+TODO
 
 ## Development
 
@@ -42,4 +46,12 @@ TODO
 
 ### Publishing
 
-TODO
+You must be logged in to npmjs.org. Recommend using an ~/.npmrc file with:
+
+```
+//registry.npmjs.org/:_authToken=YOURTOKEN
+```
+
+```sh
+make publish
+```
