@@ -7,7 +7,7 @@ all: build
 
 # target: doc - create docs
 doc:
-	cargo doc --no-deps --document-private-items && cp -r target/doc/**/* docs
+	cargo doc --no-deps --document-private-items && cp -r target/doc/* docs
 
 # target: doc.open - create docs and open in a web browser
 doc.open:
