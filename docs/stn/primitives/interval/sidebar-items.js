@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["_IMPL_DESERIALIZE_FOR_Interval",""],["_IMPL_SERIALIZE_FOR_Interval",""]],"struct":[["Interval","An interval represents a context-agnostic inclusive [lower, upper] time range. While Interval may be accessible from JS, the Rust implementation includes additional operator overloads for simplified arithmetic."]]});

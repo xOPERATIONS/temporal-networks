@@ -1,37 +1,45 @@
-## Welcome to GitHub Pages
+# Temporal Networks
 
-You can use the [editor on GitHub](https://github.com/xOPERATIONS/temporal-networks/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+Implements Simple Temporal Networks in Rust and compiles to WASM for use in any JS project.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+[Library documentation](https://xoperations.github.io/temporal-networks/stn/)
 
-### Markdown
+## What is a Simple Temporal Network?
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+* See [here](./docs/references/STNs_for_EVAs.pdf) for a tutorial
+* There are additional papers in [docs/references](./docs/references/)
 
-```markdown
-Syntax highlighted code block
+## Installation
 
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```sh
+npm i # TODO
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Development
 
-### Jekyll Themes
+### Dependencies
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/xOPERATIONS/temporal-networks/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+1. [Install rust/cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html)
+2. [Install Node](https://nodejs.org/en/download/) (or use a version manager like [`nvm`](https://github.com/nvm-sh/nvm))
+3. Install `make`
+  * Linux/Unix: it's probably already on your system. If not, google "install make on [your OS here]"
+  * Windows: http://gnuwin32.sourceforge.net/packages/make.htm
 
-### Support or Contact
+### Run Locally without Publishing
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+TODO
+
+### Testing
+
+* Test Rust, WASM, and JS
+  ```sh
+  make test
+  ```
+* Just test Rust
+  ```sh
+  make test.rust
+  ```
+
+### Publishing
+
+TODO
