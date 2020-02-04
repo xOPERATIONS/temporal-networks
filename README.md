@@ -47,6 +47,8 @@ TBD
 
 ### Publishing
 
+Note, the version in `Cargo.toml` is what determines the version in NPM. The version in ./package.json does not affect anything.
+
 You must be logged in to npmjs.org. Recommend using an ~/.npmrc file with:
 
 ```
