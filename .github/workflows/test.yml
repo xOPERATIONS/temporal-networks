@@ -41,4 +41,4 @@ jobs:
       - name: Test wasm-bindgen
         run: npx wasm-pack test --node
       - name: Test WASM, JS
-        run: make build && npm t
+        run: make test.js
