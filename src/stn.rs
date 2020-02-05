@@ -1027,7 +1027,6 @@ mod tests {
     }
   }
 
-  // THIS TEST STILL FAILING
   #[wasm_bindgen_test]
   fn test_full_maestro_json_input_STS_134_18_nodes_22_real_edges() {
     let input = json!(
