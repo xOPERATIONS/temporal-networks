@@ -10,7 +10,8 @@
   "dependencies": {},
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^7.0.1"
+    "mocha": "^7.0.1",
+    "wasm-pack": "^0.8.1"
   },
   "scripts": {
     "test": "mocha"

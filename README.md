@@ -11,7 +11,7 @@ Implements Simple Temporal Networks in Rust and compiles to WASM for use in any 
 * See [here](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/STNs_for_EVAs.pdf) for a tutorial
 * There are additional papers in [docs/references](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/)
 
-## Installation
+## End User Installation
 
 ```sh
 npm i @xoperations/temporal-networks
@@ -30,6 +30,14 @@ TBD
 3. Install `make`
   * Linux/Unix: it's probably already on your system. If not, google "install make on [your OS here]"
   * Windows: http://gnuwin32.sourceforge.net/packages/make.htm
+
+### Developer Installation
+
+Install `wasm-pack` alongside node dependencies.
+
+```sh
+npm i
+```
 
 ### Testing
 

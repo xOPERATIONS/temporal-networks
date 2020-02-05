@@ -13,9 +13,38 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '10.x'
-      - name: Install deps
-        # why version 0.8? see https://github.com/rustwasm/wasm-pack/issues/782
-        run: cargo install wasm-pack --version 0.8.1 && npm i
+
+      - name: testmake
+        run: make help
+
+      - name: Cache node modules
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Install node deps
+        run: npm i
+
+      - name: Cache rust crates
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-rust-crates
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Install rust deps
+        run: cargo build
+
       - name: Test Rust
         uses: actions-rs/cargo@v1
         with:
@@ -23,4 +52,4 @@ jobs:
       - name: Test wasm-bindgen
         run: wasm-pack test --node
       - name: Test WASM, JS
-        run: npm t
+        run: make build && npm t
