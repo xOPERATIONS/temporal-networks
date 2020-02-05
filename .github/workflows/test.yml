@@ -7,16 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
       - uses: actions/setup-node@v1
         with:
           node-version: '10.x'
+      - name: Install deps
+        # why version 0.8? see https://github.com/rustwasm/wasm-pack/issues/782
+        run: cargo install wasm-pack --version 0.8.1 && npm i
+      - name: Build
+        run: cargo build && wasm-pack build --scope xoperations --target nodejs --out-name index
       - name: Test Rust
-        uses: actions-rs/cargo@v1.0.1
-        with:
-          command: test
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        run: cargo test
       - name: Test wasm-bindgen
         run: wasm-pack test --node
       - name: Test WASM, JS
-        run: wasm-pack build --scope xoperations --target nodejs --out-name index && npm i && npm t
+        run: npm t
