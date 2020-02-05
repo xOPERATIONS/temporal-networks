@@ -24,15 +24,21 @@ jobs:
       - name: Install node deps
         run: npm i
 
-      - name: Cache rust crates
+      - name: Cache cargo registry
         uses: actions/cache@v1
-        env:
-          cache-name: cache-rust-crates
         with:
-          path: ~/.cargo/registry/cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Install rust deps
-        run: cargo build
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run tests
         run: make test -k
