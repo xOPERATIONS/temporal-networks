@@ -25,7 +25,7 @@ test.js: build
 test: test.rust test.js
 
 # target: build - build a JS agnostic package
-build: test
+build:
 	wasm-pack build --scope xoperations --target nodejs --out-name index
 
 # target: publish - publish to GitHub registry
