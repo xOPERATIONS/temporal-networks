@@ -1,0 +1,9 @@
+name: Publish
+on: [push]
+
+jobs:
+  publish:
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+      - run: make help
