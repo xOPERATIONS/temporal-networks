@@ -59,6 +59,7 @@ npm i
 ### CI/CD
 
 * We're using GitHub Actions for CI/CD. The [standard environment](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners) includes Rust and Node tooling, but we're still specifying versions to be safe.
+* [Caching Rust](https://github.com/actions/cache/blob/master/examples.md#rust---cargo)
 
 ### Publishing
 
