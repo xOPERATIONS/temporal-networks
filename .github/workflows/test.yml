@@ -8,6 +8,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
       - uses: actions/setup-node@v1
         with:
           node-version: '10.x'
@@ -17,7 +19,9 @@ jobs:
       - name: Build
         run: cargo build && wasm-pack build --scope xoperations --target nodejs --out-name index
       - name: Test Rust
-        run: cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
       - name: Test wasm-bindgen
         run: wasm-pack test --node
       - name: Test WASM, JS
