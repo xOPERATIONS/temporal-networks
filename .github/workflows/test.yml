@@ -16,8 +16,6 @@ jobs:
       - name: Install deps
         # why version 0.8? see https://github.com/rustwasm/wasm-pack/issues/782
         run: cargo install wasm-pack --version 0.8.1 && npm i
-      - name: Build
-        run: cargo build && wasm-pack build --scope xoperations --target nodejs --out-name index
       - name: Test Rust
         uses: actions-rs/cargo@v1
         with:
