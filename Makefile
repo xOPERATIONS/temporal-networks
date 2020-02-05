@@ -1,4 +1,4 @@
-.PHONY: all doc test build publish help
+.PHONY: all doc test build install publish help
 
 SHELL = /bin/sh
 
@@ -30,7 +30,7 @@ build:
 
 # target: publish - publish to GitHub registry
 publish: build
-	wasm-pack publish --access=public
+	npx wasm-pack publish --access=public
 
 # target: help - display callable targets.
 help:

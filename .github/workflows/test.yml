@@ -7,12 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions/setup-node@v1
-        with:
-          node-version: '10.x'
 
       - name: Cache node modules
         uses: actions/cache@v1
@@ -34,11 +34,5 @@ jobs:
       - name: Install rust deps
         run: cargo build
 
-      - name: Test Rust
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-      - name: Test wasm-bindgen
-        run: npx wasm-pack test --node
-      - name: Test WASM, JS
-        run: make test.js
+      - name: Run tests
+        run: make test -k

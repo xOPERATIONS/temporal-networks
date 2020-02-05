@@ -27,6 +27,7 @@ TBD
 
 1. [Install rust/cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html)
 2. [Install Node](https://nodejs.org/en/download/) (or use a version manager like [`nvm`](https://github.com/nvm-sh/nvm))
+  * See node version in `.nvmrc` file. This is only used for testing the JS side of importing WASM.
 3. Install `make`
   * Linux/Unix: it's probably already on your system. If not, google "install make on [your OS here]"
   * Windows: http://gnuwin32.sourceforge.net/packages/make.htm
@@ -54,6 +55,10 @@ npm i
   ```sh
   make test.js
   ```
+
+### CI/CD
+
+* We're using GitHub Actions for CI/CD. The [standard environment](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners) includes Rust and Node tooling, but we're still specifying versions to be safe.
 
 ### Publishing
 
