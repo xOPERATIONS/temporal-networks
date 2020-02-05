@@ -1,9 +1,8 @@
 name: Publish
-on: [push]
-  # temporarily remove master restriction while testing
-  # push:
-  #   branches:
-  #     - master
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   publish:
