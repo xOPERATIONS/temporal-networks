@@ -14,9 +14,6 @@ jobs:
         with:
           node-version: '10.x'
 
-      - name: testmake
-        run: make help
-
       - name: Cache node modules
         uses: actions/cache@v1
         env:
@@ -24,10 +21,6 @@ jobs:
         with:
           path: ~/.npm
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
       - name: Install node deps
         run: npm i
 
@@ -36,12 +29,8 @@ jobs:
         env:
           cache-name: cache-rust-crates
         with:
-          path: ~/.cargo
+          path: ~/.cargo/registry/cache
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
       - name: Install rust deps
         run: cargo build
 
@@ -50,6 +39,6 @@ jobs:
         with:
           command: test
       - name: Test wasm-bindgen
-        run: wasm-pack test --node
+        run: npx wasm-pack test --node
       - name: Test WASM, JS
         run: make build && npm t
