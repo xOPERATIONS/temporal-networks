@@ -61,16 +61,13 @@ npm i
 * We're using GitHub Actions for CI/CD. The [standard environment](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners) includes Rust and Node tooling, but we're still specifying versions to be safe.
 * [Caching Rust](https://github.com/actions/cache/blob/master/examples.md#rust---cargo)
 
+#### Future Work
+
+* Move the test job into an action?
+* Use artifacts to streamline publishing? [upload](https://github.com/actions/upload-artifact), [download](https://github.com/actions/download-artifact)
+
 ### Publishing
 
 Note, the version in `Cargo.toml` is what determines the version in NPM. The version in ./package.json does not affect anything.
 
-You must be logged in to npmjs.org. Recommend using an ~/.npmrc file with:
-
-```
-//registry.npmjs.org/:_authToken=YOURTOKEN
-```
-
-```sh
-make publish
-```
+Merging to master automatically triggers publication to NPM. The actual publishing is handled by a GitHub action.
