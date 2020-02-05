@@ -288,6 +288,7 @@ impl STN {
     }
   }
 
+  /// Write high-level stats about the STN
   #[wasm_bindgen(js_name = toString)]
   pub fn to_string(&self) -> String {
     format!(
@@ -306,8 +307,6 @@ impl STN {
     }
   }
 }
-
-// TODO: code:test ratio is 1:2. move tests into a separate file?
 
 #[cfg(test)]
 mod tests {
