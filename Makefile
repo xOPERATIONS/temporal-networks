@@ -1,4 +1,4 @@
-.PHONY: all doc test build publish help
+.PHONY: all doc test build install publish help
 
 SHELL = /bin/sh
 
@@ -15,7 +15,7 @@ doc.open:
 
 # target: test.rust - run tests against Rust code only
 test.rust:
-	cargo test && wasm-pack test --node
+	cargo test && npx wasm-pack test --node
 
 # target: test.js - run tests against WASM builds
 test.js: build
@@ -25,12 +25,12 @@ test.js: build
 test: test.rust test.js
 
 # target: build - build a JS agnostic package
-build: test
-	wasm-pack build --scope xoperations --target nodejs --out-name index
+build:
+	npx wasm-pack build --scope xoperations --target nodejs --out-name index
 
 # target: publish - publish to GitHub registry
 publish: build
-	wasm-pack publish --access=public
+	npx wasm-pack publish --access=public
 
 # target: help - display callable targets.
 help:
