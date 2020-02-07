@@ -306,6 +306,24 @@ impl STN {
       Err(e) => Err(JsValue::from_str(&e)),
     }
   }
+
+  /// Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers.
+  ///
+  /// An example graph with two nodes, labeled 1 and 2, would result in a matrix that looks like so:
+  ///
+  ///     [ [ "",   "1",  "2" ],
+  ///       [ "1",  "0",  "5" ],
+  ///       [ "2", "-4",  "0" ] ]
+  #[wasm_bindgen(catch, method, js_name = dumpConstraintTable)]
+  pub fn dump_constraint_table(&mut self) -> JsValue {
+    // let ct = self.constraint_table.clone();
+    // create a matrix including the column, row headers
+    let num_indices = self.node_indices.len() + 1_usize;
+    let res = vec![vec![""; num_indices]; num_indices];
+    // TODO: actually create the matrix
+    // TODO: convert values, column, row headers to strings for simplicity
+    JsValue::from_serde(&res).unwrap()
+  }
 }
 
 #[cfg(test)]
