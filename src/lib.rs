@@ -1,3 +1,6 @@
+//! # Temporal Networks
+//! Temporal Networks for fast and flexible time math. We currently only support Simple Temporal Networks with offline, naive scheduling.
+
 extern crate js_sys;
 extern crate wasm_bindgen;
 
@@ -8,8 +11,8 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use web_sys::console;
 
-mod primitives;
-mod stn;
+pub mod interval;
+pub mod stn;
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]

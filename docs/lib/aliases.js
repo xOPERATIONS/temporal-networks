@@ -21,6 +21,7 @@ ALIASES["serde_derive"] = {};
 ALIASES["serde_json"] = {};
 ALIASES["stn"] = {};
 ALIASES["syn"] = {};
+ALIASES["temporal_networks"] = {};
 ALIASES["unicode_xid"] = {};
 ALIASES["wasm_bindgen"] = {};
 ALIASES["wasm_bindgen_backend"] = {};

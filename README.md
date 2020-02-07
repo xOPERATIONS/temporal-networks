@@ -56,6 +56,16 @@ npm i
   make test.js
   ```
 
+### Linting and IDEs
+
+* JS: [Prettier](https://prettier.io/)
+  * We recommend using a code editor extension to run automatically on save
+* Rust:[`rustfmt`](https://github.com/rust-lang/rustfmt) for Rust linting
+  * You don't need to install anything. Just run `cargo fmt`
+  * Or better yet, install a code editor extension to format automatically
+
+I (Cameron) highly recommend using [VS Code](https://code.visualstudio.com/). There are very useful extensions for JS and Rust. This repo includes settings for VS Code to help with linting.
+
 ### CI/CD
 
 Tests run automatically when you push your code. Merging to master automatically publishes a new version of the package to NPM. **You MUST change the version number to publish the new version of the package to NPM** - publishing will fail if the version has not changed. Note, the version in `Cargo.toml` is what determines the version in NPM. The version in `./package.json` does not affect anything.
@@ -68,3 +78,4 @@ Tests run automatically when you push your code. Merging to master automatically
 
 * Move the test job into an action?
 * Use artifacts to streamline publishing? [upload](https://github.com/actions/upload-artifact), [download](https://github.com/actions/download-artifact)
+* Maybe [separate](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/persisting-workflow-data-using-artifacts#passing-data-between-jobs-in-a-workflow) testing and linting jobs?
