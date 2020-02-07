@@ -24,22 +24,29 @@ lint.rs:
 lint.js:
 	npx prettier test/**/*.js --check
 
-# target: test.rs - run tests against Rust code only
-test.rs:
-	cargo test && npx wasm-pack test --node
+# target: test.rs - run tests against Rust
+test.rs: test.rust test.wasm
 
-# target: test.js - run tests against WASM builds
+# target: test.rust - run tests against pure Rust
+test.rust:
+	cargo test
+
+# target: test.wasm - run tests against wasm Rust
+test.wasm:
+	 npx wasm-pack test --node
+
+# target: test.js - run tests against wasm builds from the JS side
 test.js: build
 	npm t
 
-# target: test - test Rust, WASM, and JS
+# target: test - test Rust, wasm, and JS
 test: test.rs test.js
 
 # target: build - build a JS agnostic package
 build:
 	npx wasm-pack build --scope xoperations --target nodejs --out-name index
 
-# target: publish - publish to GitHub registry
+# target: publish - publish to NPM. Requires being logged into NPM
 publish: build
 	npx wasm-pack publish --access=public
 
