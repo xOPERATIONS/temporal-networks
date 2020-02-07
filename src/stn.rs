@@ -128,7 +128,7 @@ fn perform_apsp(stn: &mut STN) -> Result<(), String> {
     }
   }
 
-  let iter = 1_i32..stn.node_indices.len() as i32 + 1;
+  let iter = 1_i32..=stn.node_indices.len() as i32;
 
   // iterate over intermediates
   for k in iter.clone() {
@@ -174,7 +174,7 @@ fn perform_apsp(stn: &mut STN) -> Result<(), String> {
 
 /// Use the constraint table to set the bounds on each node
 fn set_bounds(stn: &mut STN) -> Result<(), String> {
-  for i in 1_i32..stn.node_indices.len() as i32 + 1 {
+  for i in 1_i32..=stn.node_indices.len() as i32 {
     let d_upper = match stn.constraint_table.get(&(1, i)) {
       Some(d) => d,
       None => {
