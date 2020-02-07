@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 use petgraph::Graph;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
@@ -34,14 +34,15 @@ pub struct Edge {
   target: i32,
   #[serde(default)]
   interval: Interval,
+  #[serde(default)]
   minutes: f64,
 }
 
 #[wasm_bindgen]
 #[derive(Debug)]
 pub struct STN {
-  /// maps id to Node in Graph
-  node_indices: HashMap<i32, NodeIndex>,
+  /// maps id to Node in Graph using a B-Tree for sorting
+  node_indices: BTreeMap<i32, NodeIndex>,
   distance_graph: Graph<i32, f64>,
   /// use ids to key the (column, row) of the constraint table
   constraint_table: HashMap<(i32, i32), f64>,
@@ -213,8 +214,8 @@ fn initialize(
   Ok(res)
 }
 
-/// Commit an as-performed time to the STN. Updates bounds on remaining activities. Errs if the as_performed time creates a conflict
-fn commit_and_tighten(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<(), String> {
+/// Naively commit an as-performed time to the STN. Updates bounds on non-committed activities. Errs if the as_performed time creates a conflict. Note that because this is a naive committment, there is no restriction on order and the bounds for _earlier_ activities may be rendered infeasible.
+fn naive_schedule(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<(), String> {
   let b = match stn.bounds.get(&node_id) {
     Some(b) => b,
     None => return Err(format!("cannot find bounds for node_id {}", node_id)),
@@ -257,8 +258,54 @@ fn commit_and_tighten(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<
   Ok(())
 }
 
+/// Update the bounds on following activities. Errs if the committment is out of order, ie there are earlier activities without committments. Also errs on conflicts
+fn online_schedule(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<(), String> {
+  //
+  Ok(())
+}
+
+/// Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers.
+///
+/// An example graph with two nodes, labeled 1 and 2, would result in a matrix that looks like so:
+///
+///     [ [ "",   "1",  "2" ],
+///       [ "1",  "0",  "5" ],
+///       [ "2", "-4",  "0" ] ]
+fn dump_constraint_table(stn: &STN) -> Vec<Vec<String>> {
+  let num_indices = stn.node_indices.len() + 1_usize;
+  let mut res = vec![vec![String::new(); num_indices]; num_indices];
+  let iter = stn.node_indices.iter();
+
+  let mut pos_i = 0;
+  for (i, _) in iter.clone() {
+    pos_i += 1;
+    // set the column header
+    res[0][pos_i] = format!("{}", *i);
+
+    let mut pos_j = 0;
+    for (j, _) in iter.clone() {
+      pos_j += 1;
+      // set the row header
+      res[pos_j][0] = format!("{}", *j);
+
+      // set the path value at position (column, row)
+      let position = (*i, *j);
+      let value = stn.constraint_table[&position];
+
+      if value == std::f64::MAX {
+        res[pos_i][pos_j] = "∞".to_string();
+      } else {
+        res[pos_i][pos_j] = format!("{}", value);
+      }
+    }
+  }
+
+  res
+}
+
 /// (node count, edge count) tuple struct
 #[wasm_bindgen]
+#[derive(Deserialize, Serialize)]
 pub struct RegistrationEnum(usize, usize);
 
 #[wasm_bindgen]
@@ -267,13 +314,14 @@ impl STN {
   pub fn new() -> STN {
     STN {
       bounds: HashMap::new(),
-      node_indices: HashMap::new(),
+      node_indices: BTreeMap::new(),
       distance_graph: Graph::new(),
       constraint_table: HashMap::new(),
     }
   }
 
   /// Initialize the STN
+  #[wasm_bindgen(catch, method)]
   pub fn initialize(
     &mut self,
     payload: &JsValue,
@@ -300,28 +348,17 @@ impl STN {
 
   /// Commit an as-performed time and update bounds
   #[wasm_bindgen(catch, method, js_name = commitAndTighten)]
-  pub fn commit_and_tighten(&mut self, node_id: i32, as_performed: f64) -> Result<(), JsValue> {
-    match commit_and_tighten(self, node_id, as_performed) {
+  pub fn naive_schedule(&mut self, node_id: i32, as_performed: f64) -> Result<(), JsValue> {
+    match naive_schedule(self, node_id, as_performed) {
       Ok(()) => Ok(()),
       Err(e) => Err(JsValue::from_str(&e)),
     }
   }
 
   /// Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers.
-  ///
-  /// An example graph with two nodes, labeled 1 and 2, would result in a matrix that looks like so:
-  ///
-  ///     [ [ "",   "1",  "2" ],
-  ///       [ "1",  "0",  "5" ],
-  ///       [ "2", "-4",  "0" ] ]
   #[wasm_bindgen(catch, method, js_name = dumpConstraintTable)]
-  pub fn dump_constraint_table(&mut self) -> JsValue {
-    // let ct = self.constraint_table.clone();
-    // create a matrix including the column, row headers
-    let num_indices = self.node_indices.len() + 1_usize;
-    let res = vec![vec![""; num_indices]; num_indices];
-    // TODO: actually create the matrix
-    // TODO: convert values, column, row headers to strings for simplicity
+  pub fn dump_constraint_table(&self) -> JsValue {
+    let res = dump_constraint_table(self);
     JsValue::from_serde(&res).unwrap()
   }
 }
@@ -502,6 +539,7 @@ mod tests {
 
     Ok(())
   }
+
   #[test]
   fn test_build_distance_graph_implicit_intervals() -> Result<(), String> {
     // define the graph from the walkthrough
@@ -1387,7 +1425,112 @@ mod tests {
   }
 
   #[test]
-  fn test_commit_and_tighten_walkthrough_data() -> Result<(), String> {
+  fn test_dump_constraint_table_walkthrough_data() -> Result<(), String> {
+    // define the graph from the walkthrough
+    let edges = vec![
+      Edge {
+        source: 1,
+        target: 2,
+        interval: Interval::new(10., 20.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 2,
+        target: 3,
+        interval: Interval::new(30., 40.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 4,
+        target: 3,
+        interval: Interval::new(10., 20.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 4,
+        target: 5,
+        interval: Interval::new(40., 50.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 1,
+        target: 5,
+        interval: Interval::new(60., 70.),
+        minutes: 0.,
+      },
+    ];
+
+    let data = RegistrationPayload { edges };
+
+    let options = RegistrationOptions {
+      implicit_intervals: false,
+      execution_uncertainty: 0.,
+    };
+
+    let mut stn = STN::new();
+    initialize(&mut stn, &data, &options)?;
+    let ct = dump_constraint_table(&stn);
+
+    println!("{:?}", ct);
+
+    let expected_ct: Vec<Vec<String>> = vec![
+      vec![
+        String::new(),
+        "1".to_string(),
+        "2".to_string(),
+        "3".to_string(),
+        "4".to_string(),
+        "5".to_string(),
+      ],
+      vec![
+        "1".to_string(),
+        "0".to_string(),
+        "20".to_string(),
+        "50".to_string(),
+        "30".to_string(),
+        "70".to_string(),
+      ],
+      vec![
+        "2".to_string(),
+        "-10".to_string(),
+        "0".to_string(),
+        "40".to_string(),
+        "20".to_string(),
+        "60".to_string(),
+      ],
+      vec![
+        "3".to_string(),
+        "-40".to_string(),
+        "-30".to_string(),
+        "0".to_string(),
+        "-10".to_string(),
+        "30".to_string(),
+      ],
+      vec![
+        "4".to_string(),
+        "-20".to_string(),
+        "-10".to_string(),
+        "20".to_string(),
+        "0".to_string(),
+        "50".to_string(),
+      ],
+      vec![
+        "5".to_string(),
+        "-60".to_string(),
+        "-50".to_string(),
+        "-20".to_string(),
+        "-40".to_string(),
+        "0".to_string(),
+      ],
+    ];
+
+    assert_eq!(expected_ct, ct);
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_naive_schedule_walkthrough_data() -> Result<(), String> {
     // define the graph from the walkthrough
     let edges = vec![
       Edge {
@@ -1435,7 +1578,7 @@ mod tests {
     set_bounds(&mut stn)?;
 
     // test what happens after the first activity is set to 0
-    commit_and_tighten(&mut stn, 1, 0.)?;
+    naive_schedule(&mut stn, 1, 0.)?;
 
     let expected_bounds: HashMap<i32, Interval> = [
       (1, Interval::new(0., 0.)),
@@ -1457,7 +1600,7 @@ mod tests {
     }
 
     // test what happens when the second activity is set to 15
-    commit_and_tighten(&mut stn, 2, 15.)?;
+    naive_schedule(&mut stn, 2, 15.)?;
 
     let expected_bounds: HashMap<i32, Interval> = [
       (1, Interval::new(0., 0.)),
@@ -1479,7 +1622,7 @@ mod tests {
     }
 
     // test what happens when the third activity is set to 46
-    commit_and_tighten(&mut stn, 3, 46.)?;
+    naive_schedule(&mut stn, 3, 46.)?;
 
     let expected_bounds: HashMap<i32, Interval> = [
       (1, Interval::new(0., 0.)),
