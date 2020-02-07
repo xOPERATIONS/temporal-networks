@@ -118,7 +118,7 @@ impl Sub for Interval {
 // [l_1, u_1] -= [l_2, u_2] = [l_1, u_1] + [-u_2, -l_2] = [l_1 - u_2, u_1 - l_2]
 impl SubAssign for Interval {
   fn sub_assign(&mut self, other: Interval) {
-    *self = *self + -other
+    *self += -other
   }
 }
 

@@ -389,7 +389,7 @@ mod tests {
       },
     ];
 
-    let data = RegistrationPayload { edges: edges };
+    let data = RegistrationPayload { edges };
 
     let options = RegistrationOptions {
       implicit_intervals: false,
@@ -538,7 +538,7 @@ mod tests {
       },
     ];
 
-    let data = RegistrationPayload { edges: edges };
+    let data = RegistrationPayload { edges };
 
     let options = RegistrationOptions {
       implicit_intervals: true,
@@ -1249,7 +1249,7 @@ mod tests {
       },
     ];
 
-    let data = RegistrationPayload { edges: edges };
+    let data = RegistrationPayload { edges };
 
     let options = RegistrationOptions {
       implicit_intervals: false,
@@ -1346,7 +1346,7 @@ mod tests {
       },
     ];
 
-    let data = RegistrationPayload { edges: edges };
+    let data = RegistrationPayload { edges };
 
     let options = RegistrationOptions {
       implicit_intervals: false,
@@ -1422,7 +1422,7 @@ mod tests {
       },
     ];
 
-    let data = RegistrationPayload { edges: edges };
+    let data = RegistrationPayload { edges };
 
     let options = RegistrationOptions {
       implicit_intervals: false,
