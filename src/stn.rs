@@ -258,19 +258,19 @@ fn naive_schedule(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<(), 
   Ok(())
 }
 
-/// Update the bounds on following activities. Errs if the committment is out of order, ie there are earlier activities without committments. Also errs on conflicts
-fn online_schedule(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<(), String> {
-  //
-  Ok(())
-}
+// / Update the bounds on following activities. Errs if the committment is out of order, ie there are earlier activities without committments. Also errs on conflicts
+// fn online_schedule(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<(), String> {
+//   //
+//   Ok(())
+// }
 
 /// Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers.
 ///
 /// An example graph with two nodes, labeled 1 and 2, would result in a matrix that looks like so:
 ///
-///     [ [ "",   "1",  "2" ],
-///       [ "1",  "0",  "5" ],
-///       [ "2", "-4",  "0" ] ]
+/// `[ [ "",   "1",  "2" ],
+///    [ "1",  "0",  "5" ],
+///    [ "2", "-4",  "0" ] ]`
 fn dump_constraint_table(stn: &STN) -> Vec<Vec<String>> {
   let num_indices = stn.node_indices.len() + 1_usize;
   let mut res = vec![vec![String::new(); num_indices]; num_indices];
@@ -355,11 +355,18 @@ impl STN {
     }
   }
 
-  /// Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers.
-  #[wasm_bindgen(catch, method, js_name = dumpConstraintTable)]
-  pub fn dump_constraint_table(&self) -> JsValue {
-    let res = dump_constraint_table(self);
-    JsValue::from_serde(&res).unwrap()
+  // /// Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers.
+  // #[wasm_bindgen(catch, method, js_name = dumpConstraintTable)]
+  // pub fn dump_constraint_table(&self) -> JsValue {
+  //   let res = dump_constraint_table(self);
+  //   let val = serde_json::to_value(&res).unwrap();
+  //   JsValue::from_serde(&val).unwrap()
+  // }
+
+  #[wasm_bindgen(catch, method, js_name = getConstraint)]
+  pub fn get_constraint(&self, source: i32, target: i32) -> JsValue {
+    let position = (source, target);
+    JsValue::from_f64(self.constraint_table[&position])
   }
 }
 
@@ -1471,8 +1478,6 @@ mod tests {
     initialize(&mut stn, &data, &options)?;
     let ct = dump_constraint_table(&stn);
 
-    println!("{:?}", ct);
-
     let expected_ct: Vec<Vec<String>> = vec![
       vec![
         String::new(),
@@ -1527,6 +1532,94 @@ mod tests {
     assert_eq!(expected_ct, ct);
 
     Ok(())
+  }
+
+  #[wasm_bindgen_test]
+  fn test_get_constraint() {
+    // define the graph from the walkthrough
+    let edges = vec![
+      Edge {
+        source: 1,
+        target: 2,
+        interval: Interval::new(10., 20.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 2,
+        target: 3,
+        interval: Interval::new(30., 40.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 4,
+        target: 3,
+        interval: Interval::new(10., 20.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 4,
+        target: 5,
+        interval: Interval::new(40., 50.),
+        minutes: 0.,
+      },
+      Edge {
+        source: 1,
+        target: 5,
+        interval: Interval::new(60., 70.),
+        minutes: 0.,
+      },
+    ];
+
+    let data = RegistrationPayload { edges };
+
+    let options = RegistrationOptions {
+      implicit_intervals: false,
+      execution_uncertainty: 0.,
+    };
+
+    let mut stn = STN::new();
+    match initialize(&mut stn, &data, &options) {
+      Ok(_d) => _d,
+      Err(e) => panic!(e),
+    };
+
+    // full STN with implicit constraints from the walkthrough example
+    // ((from, to), distance)
+    let expected_constraint_table: HashMap<(i32, i32), f64> = [
+      ((1, 1), 0.),
+      ((1, 2), 20.),
+      ((1, 3), 50.),
+      ((1, 4), 30.),
+      ((1, 5), 70.),
+      ((2, 1), -10.),
+      ((2, 2), 0.),
+      ((2, 3), 40.),
+      ((2, 4), 20.),
+      ((2, 5), 60.),
+      ((3, 1), -40.),
+      ((3, 2), -30.),
+      ((3, 3), 0.),
+      ((3, 4), -10.),
+      ((3, 5), 30.),
+      ((4, 1), -20.),
+      ((4, 2), -10.),
+      ((4, 3), 20.),
+      ((4, 4), 0.),
+      ((4, 5), 50.),
+      ((5, 1), -60.),
+      ((5, 2), -50.),
+      ((5, 3), -20.),
+      ((5, 4), -40.),
+      ((5, 5), 0.),
+    ]
+    .iter()
+    .cloned()
+    .collect();
+
+    for (i, expected) in expected_constraint_table.iter() {
+      let found = stn.get_constraint(i.0, i.1);
+      assert_eq!(JsValue::from_f64(*expected), found)
+    }
   }
 
   #[test]
