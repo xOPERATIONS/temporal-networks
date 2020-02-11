@@ -257,6 +257,79 @@ fn commit_and_tighten(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<
     Ok(())
 }
 
+/// Implementation of PC1 algorithm. Returns bool, true if the STN has no negative loops, error is there's a negative edge found.  
+fn pc1_algo(stn: &mut STN) -> Result <(), bool> {
+    
+    //get the apsp matrix
+    let asps_graph = &stn.constraint_table;
+    //set return type vars
+    let negative_loop_exists = false; 
+    
+    if true {
+      return Ok(())
+    }else {
+      return Err(negative_loop_exists)
+
+    }
+
+}
+
+//temp places here so don't need to scroll back and forth
+//Is this the right place to test pc1?
+#[test]
+fn test_pc1_algo_walkthrough_data() -> Result<(), String> {
+    // define the graph from the walkthrough
+    let edges = vec![
+        Edge {
+            source: 1,
+            target: 2,
+            interval: Interval::new(10., 20.),
+            minutes: 0.,
+        },
+        Edge {
+            source: 2,
+            target: 3,
+            interval: Interval::new(30., 40.),
+            minutes: 0.,
+        },
+        Edge {
+            source: 4,
+            target: 3,
+            interval: Interval::new(10., 20.),
+            minutes: 0.,
+        },
+        Edge {
+            source: 4,
+            target: 5,
+            interval: Interval::new(40., 50.),
+            minutes: 0.,
+        },
+        Edge {
+            source: 1,
+            target: 5,
+            interval: Interval::new(60., 70.),
+            minutes: 0.,
+        },
+    ];
+
+    let data = RegistrationPayload { edges: edges };
+
+    let options = RegistrationOptions {
+        implicit_intervals: false,
+        execution_uncertainty: 0.,
+    };
+
+    let mut stn = STN::new();
+    build_distance_graph(&mut stn, &data, &options)?;
+    perform_apsp(&mut stn)?;
+    set_bounds(&mut stn)?;
+
+    //TBD need to fill in test
+    pc1_algo(&mut stn );
+      
+    Ok(())
+}
+
 /// (node count, edge count) tuple struct
 #[wasm_bindgen]
 pub struct RegistrationEnum(usize, usize);
@@ -306,6 +379,14 @@ impl STN {
             Err(e) => Err(JsValue::from_str(&e)),
         }
     }
+    
+    //Is this where I should be testing PC1?
+
+    // /// PC1 algorithm implementation for detecting negative edges
+    // #[wasm_bindgen(catch, method, js_name = pc1Algo)]
+    // pub fn pc1_algo(&mut self) -> bool {
+  
+    // }
 }
 
 #[cfg(test)]
@@ -1369,56 +1450,5 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn test_pc1_algo_walkthrough_data() -> Result<(), String> {
-        // define the graph from the walkthrough
-        let edges = vec![
-            Edge {
-                source: 1,
-                target: 2,
-                interval: Interval::new(10., 20.),
-                minutes: 0.,
-            },
-            Edge {
-                source: 2,
-                target: 3,
-                interval: Interval::new(30., 40.),
-                minutes: 0.,
-            },
-            Edge {
-                source: 4,
-                target: 3,
-                interval: Interval::new(10., 20.),
-                minutes: 0.,
-            },
-            Edge {
-                source: 4,
-                target: 5,
-                interval: Interval::new(40., 50.),
-                minutes: 0.,
-            },
-            Edge {
-                source: 1,
-                target: 5,
-                interval: Interval::new(60., 70.),
-                minutes: 0.,
-            },
-        ];
 
-        let data = RegistrationPayload { edges: edges };
-
-        let options = RegistrationOptions {
-            implicit_intervals: false,
-            execution_uncertainty: 0.,
-        };
-
-        let mut stn = STN::new();
-        build_distance_graph(&mut stn, &data, &options)?;
-        perform_apsp(&mut stn)?;
-        set_bounds(&mut stn)?;
-
-        //TBD need to fill in test
-
-        Ok(())
-    }
 }
