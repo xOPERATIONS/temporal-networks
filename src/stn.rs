@@ -43,7 +43,7 @@ pub struct STN {
     /// maps id to Node in Graph
     node_indices: HashMap<i32, NodeIndex>,
     distance_graph: Graph<i32, f64>,
-    /// use ids to key the (column, row) of the constraint table
+    /// use ids to key the (column, row) of the constraint table, the result of APSP
     constraint_table: HashMap<(i32, i32), f64>,
     // TODO: implement bounds like so?
     bounds: HashMap<i32, Interval>,
@@ -1370,7 +1370,7 @@ mod tests {
     }
 
     #[test]
-    fn test_commit_and_tighten_walkthrough_data() -> Result<(), String> {
+    fn test_pc1_algo_walkthrough_data() -> Result<(), String> {
         // define the graph from the walkthrough
         let edges = vec![
             Edge {
@@ -1417,71 +1417,7 @@ mod tests {
         perform_apsp(&mut stn)?;
         set_bounds(&mut stn)?;
 
-        // test what happens after the first activity is set to 0
-        commit_and_tighten(&mut stn, 1, 0.)?;
-
-        let expected_bounds: HashMap<i32, Interval> = [
-            (1, Interval::new(0., 0.)),
-            (2, Interval::new(10., 20.)),
-            (3, Interval::new(40., 50.)),
-            (4, Interval::new(20., 30.)),
-            (5, Interval::new(60., 70.)),
-        ]
-        .iter()
-        .cloned()
-        .collect();
-
-        for (i, b) in expected_bounds.iter() {
-            assert_eq!(
-                *b, stn.bounds[i],
-                "{:?} want {}, got {}",
-                i, *b, stn.bounds[i],
-            )
-        }
-
-        // test what happens when the second activity is set to 15
-        commit_and_tighten(&mut stn, 2, 15.)?;
-
-        let expected_bounds: HashMap<i32, Interval> = [
-            (1, Interval::new(0., 0.)),
-            (2, Interval::new(15., 15.)),
-            (3, Interval::new(45., 50.)),
-            (4, Interval::new(25., 30.)),
-            (5, Interval::new(65., 70.)),
-        ]
-        .iter()
-        .cloned()
-        .collect();
-
-        for (i, b) in expected_bounds.iter() {
-            assert_eq!(
-                *b, stn.bounds[i],
-                "{:?} want {}, got {}",
-                i, *b, stn.bounds[i],
-            )
-        }
-
-        // test what happens when the third activity is set to 46
-        commit_and_tighten(&mut stn, 3, 46.)?;
-
-        let expected_bounds: HashMap<i32, Interval> = [
-            (1, Interval::new(0., 0.)),
-            (2, Interval::new(15., 15.)),
-            (3, Interval::new(46., 46.)),
-            (4, Interval::new(26., 30.)),
-            (5, Interval::new(66., 70.)),
-        ]
-        .iter()
-        .cloned()
-        .collect();
-
-        for (i, b) in expected_bounds.iter() {
-            assert_eq!(
-                *b, stn.bounds[i],
-                "{:?} want {}, got {}",
-                i, *b, stn.bounds[i],
-            )
-        }
+        //TBD need to fill in test
 
         Ok(())
     }
