@@ -2,8 +2,8 @@ use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::collections::{BTreeMap, HashMap};
 use std::string::String;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 
 use super::interval::*;
 
@@ -321,6 +321,8 @@ impl STN {
   }
 
   /// Initialize the STN
+  ///
+  /// Returns (number of nodes created, number of edges created)
   #[wasm_bindgen(catch, method)]
   pub fn initialize(
     &mut self,
@@ -354,14 +356,6 @@ impl STN {
       Err(e) => Err(JsValue::from_str(&e)),
     }
   }
-
-  // /// Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers.
-  // #[wasm_bindgen(catch, method, js_name = dumpConstraintTable)]
-  // pub fn dump_constraint_table(&self) -> JsValue {
-  //   let res = dump_constraint_table(self);
-  //   let val = serde_json::to_value(&res).unwrap();
-  //   JsValue::from_serde(&val).unwrap()
-  // }
 
   #[wasm_bindgen(catch, method, js_name = getConstraint)]
   pub fn get_constraint(&self, source: i32, target: i32) -> JsValue {
