@@ -13,11 +13,11 @@ const example1 = {
 };
 
 describe("temporal-networks", () => {
-  it("should be importable", () => {
+  it("should have importable WASM", () => {
     expect(wasm).to.be.ok;
   });
 
-  describe("#initialize", () => {
+  describe("STN", () => {
     it("should create a graph from a set of edges", () => {
       const stn = new STN();
       const res = stn.initialize(example1, {

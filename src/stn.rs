@@ -306,7 +306,7 @@ fn dump_constraint_table(stn: &STN) -> Vec<Vec<String>> {
 /// (node count, edge count) tuple struct
 #[wasm_bindgen]
 #[derive(Deserialize, Serialize)]
-pub struct RegistrationEnum(usize, usize);
+pub struct RegistrationEnum(pub usize, pub usize);
 
 #[wasm_bindgen]
 impl STN {
@@ -326,12 +326,12 @@ impl STN {
     &mut self,
     payload: &JsValue,
     options: &JsValue,
-  ) -> Result<RegistrationEnum, JsValue> {
+  ) -> Result<JsValue, JsValue> {
     let data: RegistrationPayload = payload.into_serde().unwrap();
     let options: RegistrationOptions = options.into_serde().unwrap();
 
     match initialize(self, &data, &options) {
-      Ok((nodes, edges)) => Ok(RegistrationEnum(nodes, edges)),
+      Ok((nodes, edges)) => Ok(JsValue::from_serde(&RegistrationEnum(nodes, edges)).unwrap()),
       Err(e) => Err(JsValue::from_str(&e)),
     }
   }
@@ -744,14 +744,18 @@ mod tests {
     };
 
     let mut stn = STN::new();
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (0_usize, 0_usize),
         (u.0, u.1),
         "No nodes or edges expected to be made"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -780,14 +784,17 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
-        (2_usize, 4_usize),
-        (u.0, u.1),
-        "2 nodes, 4 edges expected to be made from given one edge"
-      ),
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
       Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+    };
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
+      (2_usize, 4_usize),
+      (u.0, u.1),
+      "2 nodes, 4 edges expected to be made from given one edge"
+    );
   }
 
   #[wasm_bindgen_test]
@@ -816,14 +823,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (2_usize, 4_usize),
         (u.0, u.1),
         "2 nodes, 4 edges expected to be made from given one edge"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -853,14 +864,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (3_usize, 7_usize),
         (u.0, u.1),
         "3 nodes, 7 edges expected to be made from given 2 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -890,14 +905,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (3_usize, 7_usize),
         (u.0, u.1),
         "3 nodes, 7 edges expected to be made from given 2 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -927,14 +946,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (4_usize, 8_usize),
         (u.0, u.1),
         "4 nodes, 8 edges expected to be made from given 2 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -964,14 +987,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (4_usize, 8_usize),
         (u.0, u.1),
         "4 nodes, 8 edges expected to be made from given 2 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -1002,14 +1029,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (4_usize, 10_usize),
         (u.0, u.1),
         "4 nodes, 10 edges expected to be made from given 3 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -1041,14 +1072,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (4_usize, 12_usize),
         (u.0, u.1),
         "4 nodes, 12 edges expected to be made from given 3 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -1080,14 +1115,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (4_usize, 12_usize),
         (u.0, u.1),
         "4 nodes, 12 edges expected to be made from given 3 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[wasm_bindgen_test]
@@ -1248,14 +1287,18 @@ mod tests {
       }
     };
 
-    match stn.initialize(&payload, &options) {
-      Ok(u) => assert_eq!(
+    let res = match stn.initialize(&payload, &options) {
+      Ok(u) => u,
+      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
+    };
+
+    let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
+
+    assert_eq!(
         (18_usize, 62_usize),
         (u.0, u.1),
         "18 nodes, 62 edges expected to be made given 34 edges"
-      ),
-      Err(e) => panic!("failed running stn.register_graph | {:?}", e),
-    }
+      )
   }
 
   #[test]
