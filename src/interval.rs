@@ -26,6 +26,11 @@ use wasm_bindgen::prelude::*;
 #[derive(Deserialize, Serialize, Copy, Clone, Debug, PartialEq, Default)]
 pub struct Interval(f64, f64);
 
+/// Get an interval from a vector
+pub fn from_vec(other: Vec<f64>) -> Interval {
+  Interval::new(other[0], other[1])
+}
+
 #[wasm_bindgen]
 impl Interval {
   /// Create a new Interval
@@ -84,7 +89,7 @@ impl Display for Interval {
 impl Add for Interval {
   type Output = Interval;
 
-  /// comment here
+  /// create a new interval from the addition of two other intervals
   fn add(self, other: Interval) -> Interval {
     Interval(self.0 + other.0, self.1 + other.1)
   }
