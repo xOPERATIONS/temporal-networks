@@ -11,6 +11,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 use web_sys::console;
 
+pub mod algorithms;
 pub mod interval;
 pub mod plan;
 pub mod stn;

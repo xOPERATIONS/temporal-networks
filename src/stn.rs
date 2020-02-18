@@ -2,8 +2,8 @@ use petgraph::graph::NodeIndex;
 use petgraph::Graph;
 use std::collections::{BTreeMap, HashMap};
 use std::string::String;
-use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 
 use super::interval::*;
 
@@ -324,11 +324,7 @@ impl STN {
   ///
   /// Returns (number of nodes created, number of edges created)
   #[wasm_bindgen(catch, method)]
-  pub fn initialize(
-    &mut self,
-    payload: &JsValue,
-    options: &JsValue,
-  ) -> Result<JsValue, JsValue> {
+  pub fn initialize(&mut self, payload: &JsValue, options: &JsValue) -> Result<JsValue, JsValue> {
     let data: RegistrationPayload = payload.into_serde().unwrap();
     let options: RegistrationOptions = options.into_serde().unwrap();
 
@@ -746,10 +742,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (0_usize, 0_usize),
-        (u.0, u.1),
-        "No nodes or edges expected to be made"
-      )
+      (0_usize, 0_usize),
+      (u.0, u.1),
+      "No nodes or edges expected to be made"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -825,10 +821,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (2_usize, 4_usize),
-        (u.0, u.1),
-        "2 nodes, 4 edges expected to be made from given one edge"
-      )
+      (2_usize, 4_usize),
+      (u.0, u.1),
+      "2 nodes, 4 edges expected to be made from given one edge"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -866,10 +862,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (3_usize, 7_usize),
-        (u.0, u.1),
-        "3 nodes, 7 edges expected to be made from given 2 edges"
-      )
+      (3_usize, 7_usize),
+      (u.0, u.1),
+      "3 nodes, 7 edges expected to be made from given 2 edges"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -907,10 +903,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (3_usize, 7_usize),
-        (u.0, u.1),
-        "3 nodes, 7 edges expected to be made from given 2 edges"
-      )
+      (3_usize, 7_usize),
+      (u.0, u.1),
+      "3 nodes, 7 edges expected to be made from given 2 edges"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -948,10 +944,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (4_usize, 8_usize),
-        (u.0, u.1),
-        "4 nodes, 8 edges expected to be made from given 2 edges"
-      )
+      (4_usize, 8_usize),
+      (u.0, u.1),
+      "4 nodes, 8 edges expected to be made from given 2 edges"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -989,10 +985,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (4_usize, 8_usize),
-        (u.0, u.1),
-        "4 nodes, 8 edges expected to be made from given 2 edges"
-      )
+      (4_usize, 8_usize),
+      (u.0, u.1),
+      "4 nodes, 8 edges expected to be made from given 2 edges"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -1031,10 +1027,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (4_usize, 10_usize),
-        (u.0, u.1),
-        "4 nodes, 10 edges expected to be made from given 3 edges"
-      )
+      (4_usize, 10_usize),
+      (u.0, u.1),
+      "4 nodes, 10 edges expected to be made from given 3 edges"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -1074,10 +1070,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (4_usize, 12_usize),
-        (u.0, u.1),
-        "4 nodes, 12 edges expected to be made from given 3 edges"
-      )
+      (4_usize, 12_usize),
+      (u.0, u.1),
+      "4 nodes, 12 edges expected to be made from given 3 edges"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -1117,10 +1113,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (4_usize, 12_usize),
-        (u.0, u.1),
-        "4 nodes, 12 edges expected to be made from given 3 edges"
-      )
+      (4_usize, 12_usize),
+      (u.0, u.1),
+      "4 nodes, 12 edges expected to be made from given 3 edges"
+    )
   }
 
   #[wasm_bindgen_test]
@@ -1289,10 +1285,10 @@ mod tests {
     let u: (usize, usize) = JsValue::into_serde(&res).unwrap();
 
     assert_eq!(
-        (18_usize, 62_usize),
-        (u.0, u.1),
-        "18 nodes, 62 edges expected to be made given 34 edges"
-      )
+      (18_usize, 62_usize),
+      (u.0, u.1),
+      "18 nodes, 62 edges expected to be made given 34 edges"
+    )
   }
 
   #[test]

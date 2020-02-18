@@ -29,6 +29,14 @@ describe("temporal-networks", () => {
       expect(i.contains(10)).to.be.false;
     });
 
+    it("has an upper and lower", () => {
+      const lower = 10.1;
+      const upper = 15.5;
+      const i = new Interval(lower, upper);
+      expect(i.lower()).to.equal(lower);
+      expect(i.upper()).to.equal(upper);
+    });
+
     it("can be checked for validity", () => {
       const i = new Interval(9, 7);
       expect(i.isValid()).to.be.false;
@@ -51,6 +59,10 @@ describe("temporal-networks", () => {
 
       const i = plan.getDuration(step);
       expect(i.toJSON()).to.deep.equal(testDuration);
+    });
+
+    it("should compile to a dispatchable form", () => {
+      //
     });
   });
 });

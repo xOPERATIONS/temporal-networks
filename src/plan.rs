@@ -2,7 +2,9 @@ use petgraph::graphmap::DiGraphMap;
 use std::collections::BTreeMap;
 use std::string::String;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 
+use super::algorithms::floyd_warshall;
 use super::interval;
 
 #[wasm_bindgen]
@@ -38,8 +40,8 @@ impl Plan {
 
     self
       .id_to_indices
-      .insert(identifier.clone() + "START", start_id);
-    self.id_to_indices.insert(identifier + "END", end_id);
+      .insert(identifier.clone() + "__START", start_id);
+    self.id_to_indices.insert(identifier + "__END", end_id);
     Step(start_id, end_id)
   }
 
@@ -84,7 +86,14 @@ impl Plan {
     interval::Interval::new(-*lower, *upper)
   }
 
-  pub fn compile() {}
+  pub fn compile(&mut self) -> Result<(), JsValue> {
+    let _mappings = match floyd_warshall(&self.stn) {
+      Ok(d) => d,
+      Err(e) => return Err(JsValue::from_str(&e)),
+    };
+
+    Ok(())
+  }
 
   pub fn get_schedule() {}
 
