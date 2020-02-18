@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
+use web_sys::console;
 
 use super::algorithms::floyd_warshall;
 use super::interval;
@@ -40,6 +41,8 @@ impl Step {
 pub struct Plan {
     stn: DiGraphMap<StepID, f64>,
     dispatchable: DiGraphMap<StepID, f64>,
+    /// Debugging
+    constraint_table: BTreeMap<(StepID, StepID), f64>,
     /// housekeeping to keep track of step identifiers. DiGraphMap can't work with String NodeTraits
     id_to_indices: BTreeMap<String, StepID>,
     /// Whether or not changes have been made since the last compile
@@ -53,6 +56,7 @@ impl Plan {
         Plan {
             stn: DiGraphMap::new(),
             dispatchable: DiGraphMap::new(),
+            constraint_table: BTreeMap::new(),
             id_to_indices: BTreeMap::new(),
             dirty: true,
         }
@@ -67,11 +71,21 @@ impl Plan {
             };
         }
 
-        self.dispatchable.nodes().find(|n| {
+        // all incoming edges should be <= 0 for the first node
+        self.dispatchable.nodes().find(|s| {
             self.dispatchable
-                .edges(*n)
-                .all(|(_s, _t, weight)| *weight >= 0.)
+                .neighbors_directed(*s, petgraph::Incoming)
+                .all(|t| match self.dispatchable.edge_weight(t, *s) {
+                    Some(w) => *w <= 0.,
+                    None => false,
+                })
         })
+        // all outgoing edges should be >= 0 for the first node
+        // self.dispatchable.nodes().find(|n| {
+        //     self.dispatchable
+        //         .edges(*n)
+        //         .all(|(_s, _t, weight)| *weight >= 0.)
+        // })
     }
 
     /// Build a step but don't add it to the graph
@@ -119,6 +133,9 @@ impl Plan {
             Ok(d) => d,
             Err(e) => return Err(JsValue::from_str(&e)),
         };
+
+        // track the constraint table for debugging
+        self.constraint_table = mappings.clone();
 
         // reset the dispatchable graph
         self.dispatchable = DiGraphMap::new();
@@ -203,7 +220,10 @@ impl Plan {
             }
         };
 
-        Ok(JsValue::from_f64(*t))
+        let v = JsValue::from_f64(*t);
+        console::log_1(&v);
+
+        Ok(v)
     }
 
     /// Get the earliest time of an event. Assume 0 indexed on the plan's start

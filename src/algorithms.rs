@@ -1,12 +1,12 @@
 use itertools::Itertools;
 use petgraph::graphmap::DiGraphMap;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::string::String;
 
 /// Similar to Python's networkx Floyd Warshall implementation. Performs all-pairs shortest paths against a graph and returns a mapping of the shortest paths
-pub fn floyd_warshall(graph: &DiGraphMap<i32, f64>) -> Result<HashMap<(i32, i32), f64>, String> {
+pub fn floyd_warshall(graph: &DiGraphMap<i32, f64>) -> Result<BTreeMap<(i32, i32), f64>, String> {
     // TODO: use generics instead
-    let mut mappings = HashMap::new();
+    let mut mappings = BTreeMap::new();
 
     // initialize distances to self to 0
     for node in graph.nodes() {

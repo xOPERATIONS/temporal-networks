@@ -82,7 +82,7 @@ describe("temporal-networks", () => {
       const step2 = plan.addStep("test2", (duration = [2, 9]));
       plan.addConstraint(step.end, step2.start);
 
-      expect(plan.timeUntil(step2.start)).to.equal(5);
+      expect(plan.timeUntil(step2.start)).to.equal(1);
     });
 
     it("should provide intervals between steps", () => {
@@ -95,6 +95,27 @@ describe("temporal-networks", () => {
       plan.addConstraint(step2.end, step3.start);
 
       expect(plan.intervalBetween(step, step3).toJSON()).to.deep.equal([3, 14]);
+    });
+
+    it("should provide the earliest possible times", () => {
+      const plan = new Plan();
+      const step = plan.addStep("test", (duration = [1, 5]));
+      const step2 = plan.addStep("test2", (duration = [2, 9]));
+      const step3 = plan.addStep("test3", (duration = [0, 10]));
+      console.log(
+        step.start,
+        step.end,
+        step2.start,
+        step2.end,
+        step3.start,
+        step3.end
+      );
+
+      plan.addConstraint(step.end, step2.start);
+      plan.addConstraint(step2.end, step3.start);
+
+      expect(plan.timeUntil(step3.start)).to.equal(3);
+      expect(plan.timeUntil(step3.end)).to.equal(24);
     });
   });
 });
