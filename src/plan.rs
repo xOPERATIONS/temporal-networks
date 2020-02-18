@@ -3,13 +3,13 @@ use std::collections::BTreeMap;
 use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
-use web_sys::console;
 
 use super::algorithms::floyd_warshall;
 use super::interval;
 
 type StepID = i32;
 
+/// Steps represent a logical action that occurs over a period of time. They implicitly generate start and end events, which are used by `Plan`
 #[wasm_bindgen]
 #[derive(Clone, Debug, Default)]
 pub struct Step(StepID, StepID, String);
@@ -56,6 +56,22 @@ impl Plan {
             id_to_indices: BTreeMap::new(),
             dirty: true,
         }
+    }
+
+    /// Get the first node in the plan
+    fn first_node(&mut self) -> Option<StepID> {
+        if self.dirty {
+            match self.compile() {
+                Ok(_) => (),
+                Err(_e) => return None,
+            };
+        }
+
+        self.dispatchable.nodes().find(|n| {
+            self.dispatchable
+                .edges(*n)
+                .all(|(_s, _t, weight)| *weight >= 0.)
+        })
     }
 
     /// Build a step but don't add it to the graph
@@ -120,7 +136,7 @@ impl Plan {
 
     pub fn complete_step() {}
 
-    /// Get the time interval between the end of the `source` and the start of the `target`. Could be negative if `target` is chronologically before `source`
+    /// Get the maximum interval between controllable Step `source` and the start of `target`. Could be negative if `target` is chronologically before `source`.
     #[wasm_bindgen(catch, js_name = intervalBetween)]
     pub fn interval_between(
         &mut self,
@@ -131,7 +147,7 @@ impl Plan {
             self.compile()?;
         }
 
-        let lower = match self.dispatchable.edge_weight(source.1, target.0) {
+        let lower = match self.dispatchable.edge_weight(target.0, source.0) {
             Some(l) => l,
             None => {
                 return Err(JsValue::from_str(&format!(
@@ -151,28 +167,12 @@ impl Plan {
             }
         };
 
-        Ok(interval::Interval::new(*lower, *upper))
+        Ok(interval::Interval::new(-*lower, *upper))
     }
 
-    pub fn time_until() {}
-
-    // alias for add_preceding_start
-    pub fn add_preceding() {}
-
-    pub fn add_preceding_start() {}
-
-    pub fn add_preceding_end() {}
-
-    // alias for add_following_end
-    pub fn add_following() {}
-
-    pub fn add_following_start() {}
-
-    pub fn add_following_end() {}
-
-    pub fn update_duration() {}
-
-    pub fn add_constraint(&mut self, source: StepID, target: StepID) -> Result<(), JsValue> {
+    /// Get the time between two events
+    #[wasm_bindgen(js_name = timeBetween)]
+    pub fn time_between(&mut self, source: StepID, target: StepID) -> Result<JsValue, JsValue> {
         // ensure source and target already exist
         if !self.stn.contains_node(source) {
             return Err(JsValue::from_str(&format!(
@@ -180,14 +180,90 @@ impl Plan {
                 source
             )));
         }
+        if !self.stn.contains_node(target) {
+            return Err(JsValue::from_str(&format!(
+                "Target {} is not already in the plan. Have you added it with `addStep`?",
+                target
+            )));
+        }
 
-        self.stn.add_edge(source, target, 0.);
+        if self.dirty {
+            match self.compile() {
+                Ok(_) => (),
+                Err(e) => return Err(e),
+            }
+        }
+
+        let t = match self.dispatchable.edge_weight(source, target) {
+            Some(t) => t,
+            None => {
+                return Err(JsValue::from_str(&format!(
+                    "Cannot find path from start to target"
+                )))
+            }
+        };
+
+        Ok(JsValue::from_f64(*t))
+    }
+
+    /// Get the earliest time of an event. Assume 0 indexed on the plan's start
+    #[wasm_bindgen(js_name = timeUntil)]
+    pub fn time_until(&mut self, target: StepID) -> Result<JsValue, JsValue> {
+        if self.dirty {
+            match self.compile() {
+                Ok(_) => (),
+                Err(e) => return Err(e),
+            }
+        }
+
+        let first = match self.first_node() {
+            Some(f) => f,
+            None => {
+                return Err(JsValue::from_str(&format!(
+                    "Cannot pull absolute time because the graph does not have a starting point"
+                )))
+            }
+        };
+
+        self.time_between(first, target)
+    }
+
+    // TODO: take StepID, not step
+    pub fn update_duration() {}
+
+    /// Add a constraint between the start or end of two events. Errs if either start or end is not already in the plan. Defaults to a [0, 0] interval between events
+    #[wasm_bindgen(js_name = addConstraint)]
+    pub fn add_constraint(
+        &mut self,
+        source: StepID,
+        target: StepID,
+        duration: Option<Vec<f64>>,
+    ) -> Result<(), JsValue> {
+        // ensure source and target already exist
+        if !self.stn.contains_node(source) {
+            return Err(JsValue::from_str(&format!(
+                "Source {} is not already in the plan. Have you added it with `addStep`?",
+                source
+            )));
+        }
+        if !self.stn.contains_node(target) {
+            return Err(JsValue::from_str(&format!(
+                "Target {} is not already in the plan. Have you added it with `addStep`?",
+                target
+            )));
+        }
+
+        let d = duration.unwrap_or(vec![0., 0.]);
+        let i = interval::from_vec(d);
+
+        self.stn.add_edge(source, target, i.upper());
+        self.stn.add_edge(target, source, -i.lower());
 
         self.dirty = true;
         Ok(())
     }
 
-    pub fn remove_constraist() {}
+    pub fn remove_constrainst() {}
 
-    pub fn remove_constraists() {}
+    pub fn remove_constrainsts() {}
 }

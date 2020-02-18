@@ -79,35 +79,23 @@ describe("temporal-networks", () => {
     it("should chain steps together", () => {
       const plan = new Plan();
       const step = plan.addStep("test", (duration = [1, 5]));
-      const step2 = plan.addStep(
-        "test2",
-        (follows = step),
-        (duration = [2, 9])
-      );
-      expect(step instanceof Step).to.be.true;
-      expect(step2 instanceof Step).to.be.true;
+      const step2 = plan.addStep("test2", (duration = [2, 9]));
+      plan.addConstraint(step.end, step2.start);
+
+      expect(plan.timeUntil(step2.start)).to.equal(5);
     });
 
-    // it("should provide intervals between steps", () => {
-    //   const plan = new Plan();
-    //   const step = plan.addStep("test", (duration = [1, 5]));
-    //   try {
-    //     const step2 = plan.addStep(
-    //       "test2",
-    //       (follows = step),
-    //       (duration = [2, 9])
-    //     );
-    //     const step3 = plan.addStep(
-    //       "test3",
-    //       (follows = step2),
-    //       (duration = [0, 10])
-    //     );
-    //   } catch (e) {
-    //     console.error(e);
-    //   }
+    it("should provide intervals between steps", () => {
+      const plan = new Plan();
+      const step = plan.addStep("test", (duration = [1, 5]));
+      const step2 = plan.addStep("test2", (duration = [2, 9]));
+      const step3 = plan.addStep("test3", (duration = [0, 10]));
 
-    //   expect(plan.intervalBetween(step, step3)).to.deep.equal([3, 14]);
-    // });
+      plan.addConstraint(step.end, step2.start);
+      plan.addConstraint(step2.end, step3.start);
+
+      expect(plan.intervalBetween(step, step3).toJSON()).to.deep.equal([3, 14]);
+    });
   });
 });
 
