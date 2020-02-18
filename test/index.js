@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const wasm = require("../pkg");
-const { Interval, Plan } = wasm;
+const { Interval, Plan, Step } = wasm;
 
 // taken from MIT 16.412 L02 (see docs/references/)
 const example1 = {
@@ -12,6 +12,10 @@ const example1 = {
   ]
 };
 
+const example2 = () => {
+  const plan = new Plan();
+};
+
 describe("temporal-networks", () => {
   it("should have importable WASM", () => {
     expect(wasm).to.be.ok;
@@ -21,6 +25,14 @@ describe("temporal-networks", () => {
     it("can be instantiated", () => {
       const i = new Interval(0, 0);
       expect(i).to.be.ok;
+    });
+
+    it("can be indexed", () => {
+      const lower = 1;
+      const upper = 20.1;
+      const i = new Interval(lower, upper);
+      expect(i[0]).to.equal(lower);
+      expect(i[1]).to.equal(upper);
     });
 
     it("can be compared for contains", () => {
@@ -45,10 +57,13 @@ describe("temporal-networks", () => {
 
   describe("Plan", () => {
     it("should create a step with only an identifier", () => {
+      const testName = "test";
       const plan = new Plan();
-      const step = plan.addStep("test");
-      expect(step).to.be.ok;
+      const step = plan.addStep(testName);
+
+      expect(step instanceof Step).to.be.true;
       expect(plan.getDuration(step).toJSON()).to.deep.equal([0, 0]);
+      expect(step.toString()).to.equal(testName);
     });
 
     it("should create a step with a duration", () => {
@@ -61,9 +76,38 @@ describe("temporal-networks", () => {
       expect(i.toJSON()).to.deep.equal(testDuration);
     });
 
-    it("should compile to a dispatchable form", () => {
-      //
+    it("should chain steps together", () => {
+      const plan = new Plan();
+      const step = plan.addStep("test", (duration = [1, 5]));
+      const step2 = plan.addStep(
+        "test2",
+        (follows = step),
+        (duration = [2, 9])
+      );
+      expect(step instanceof Step).to.be.true;
+      expect(step2 instanceof Step).to.be.true;
     });
+
+    // it("should provide intervals between steps", () => {
+    //   const plan = new Plan();
+    //   const step = plan.addStep("test", (duration = [1, 5]));
+    //   try {
+    //     const step2 = plan.addStep(
+    //       "test2",
+    //       (follows = step),
+    //       (duration = [2, 9])
+    //     );
+    //     const step3 = plan.addStep(
+    //       "test3",
+    //       (follows = step2),
+    //       (duration = [0, 10])
+    //     );
+    //   } catch (e) {
+    //     console.error(e);
+    //   }
+
+    //   expect(plan.intervalBetween(step, step3)).to.deep.equal([3, 14]);
+    // });
   });
 });
 

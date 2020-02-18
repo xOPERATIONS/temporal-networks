@@ -22,9 +22,9 @@ use wasm_bindgen::prelude::*;
 /// let unioned_interval = Interval::new(5., 10.);
 /// assert_eq!(interval1 & interval2, unioned_interval);
 /// ```
-#[wasm_bindgen(inspectable)]
+#[wasm_bindgen]
 #[derive(Deserialize, Serialize, Copy, Clone, Debug, PartialEq, Default)]
-pub struct Interval(f64, f64);
+pub struct Interval(pub f64, pub f64);
 
 /// Get an interval from a vector
 pub fn from_vec(other: Vec<f64>) -> Interval {

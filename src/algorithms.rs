@@ -3,7 +3,7 @@ use petgraph::graphmap::DiGraphMap;
 use std::collections::HashMap;
 use std::string::String;
 
-/// Similar to Python's networkx Floyd Warshall implementation
+/// Similar to Python's networkx Floyd Warshall implementation. Performs all-pairs shortest paths against a graph and returns a mapping of the shortest paths
 pub fn floyd_warshall(graph: &DiGraphMap<i32, f64>) -> Result<HashMap<(i32, i32), f64>, String> {
   // TODO: use generics instead
   let mut mappings = HashMap::new();
@@ -56,5 +56,5 @@ pub fn floyd_warshall(graph: &DiGraphMap<i32, f64>) -> Result<HashMap<(i32, i32)
     mappings.insert(position, d_new);
   }
 
-  Ok(ret)
+  Ok(mappings)
 }

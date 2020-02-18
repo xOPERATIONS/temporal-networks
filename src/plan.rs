@@ -1,5 +1,5 @@
 use petgraph::graphmap::DiGraphMap;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
@@ -8,13 +8,23 @@ use super::algorithms::floyd_warshall;
 use super::interval;
 
 #[wasm_bindgen]
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Step(i32, i32);
+#[derive(Clone, Debug, Default)]
+pub struct Step(i32, i32, String);
+
+#[wasm_bindgen]
+impl Step {
+  /// Get a string representing this Step
+  #[wasm_bindgen(js_name = toString)]
+  pub fn to_string(&self) -> String {
+    format!("{}", self.2)
+  }
+}
 
 #[wasm_bindgen]
 #[derive(Debug)]
 pub struct Plan {
   stn: DiGraphMap<i32, f64>,
+  dispatchable: DiGraphMap<i32, f64>,
   /// housekeeping to keep track of step identifiers. DiGraphMap can't work with String NodeTraits
   id_to_indices: BTreeMap<String, i32>,
   /// Whether or not changes have been made since the last compile
@@ -27,6 +37,7 @@ impl Plan {
   pub fn new() -> Plan {
     Plan {
       stn: DiGraphMap::new(),
+      dispatchable: DiGraphMap::new(),
       id_to_indices: BTreeMap::new(),
       dirty: true,
     }
@@ -41,12 +52,14 @@ impl Plan {
     self
       .id_to_indices
       .insert(identifier.clone() + "__START", start_id);
-    self.id_to_indices.insert(identifier + "__END", end_id);
-    Step(start_id, end_id)
+    self
+      .id_to_indices
+      .insert(identifier.clone() + "__END", end_id);
+    Step(start_id, end_id, identifier)
   }
 
   /// Create a new step and add it to this plan. Can optionally follow and/or precede any step in the timeline
-  #[wasm_bindgen(js_name = addStep)]
+  #[wasm_bindgen(catch, js_name = addStep)]
   pub fn add_step(
     &mut self,
     identifier: String,
@@ -80,18 +93,30 @@ impl Plan {
 
   /// Get the controllable duration of a step
   #[wasm_bindgen(js_name = getDuration)]
-  pub fn get_duration(&self, s: Step) -> interval::Interval {
+  pub fn get_duration(&self, s: &Step) -> interval::Interval {
     let lower = self.stn.edge_weight(s.1, s.0).unwrap_or(&0.);
     let upper = self.stn.edge_weight(s.0, s.1).unwrap_or(&0.);
     interval::Interval::new(-*lower, *upper)
   }
 
+  /// Compile the plan into a dispatchable form. A dispatchable form is required to query the plan for almost any scheduling information. This method is called implicitly when you attempt to query the plan when the dispatchable graph is not up-to-date. However, you can proactively call `compile` at a time that is computationally convenient for your application to avoid paying the performance penalty when querying the plan
+  #[wasm_bindgen(catch)]
   pub fn compile(&mut self) -> Result<(), JsValue> {
-    let _mappings = match floyd_warshall(&self.stn) {
+    // run all-pairs shortest paths
+    let mappings = match floyd_warshall(&self.stn) {
       Ok(d) => d,
       Err(e) => return Err(JsValue::from_str(&e)),
     };
 
+    // reset the dispatchable graph
+    self.dispatchable = DiGraphMap::new();
+
+    // add all the edges
+    for ((source, target), weight) in mappings.iter() {
+      self.dispatchable.add_edge(*source, *target, *weight);
+    }
+
+    self.dirty = false;
     Ok(())
   }
 
@@ -99,7 +124,39 @@ impl Plan {
 
   pub fn complete_step() {}
 
-  pub fn interval_between() {}
+  /// Get the time interval between the end of the `source` and the start of the `target`. Could be negative if `target` is chronologically before `source`
+  #[wasm_bindgen(catch, js_name = intervalBetween)]
+  pub fn interval_between(
+    &mut self,
+    source: &Step,
+    target: &Step,
+  ) -> Result<interval::Interval, JsValue> {
+    if self.dirty {
+      self.compile()?;
+    }
+
+    let lower = match self.dispatchable.edge_weight(source.1, target.0) {
+      Some(l) => l,
+      None => {
+        return Err(JsValue::from_str(&format!(
+          "missing lower edge: end of {} to start of {}",
+          source.2, target.2
+        )))
+      }
+    };
+
+    let upper = match self.dispatchable.edge_weight(source.0, target.0) {
+      Some(l) => l,
+      None => {
+        return Err(JsValue::from_str(&format!(
+          "missing upper edge: start of {} to start of {}",
+          source.2, target.2
+        )))
+      }
+    };
+
+    Ok(interval::Interval::new(*lower, *upper))
+  }
 
   pub fn time_until() {}
 
