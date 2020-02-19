@@ -4,7 +4,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, Neg, Sub, SubAssign};
 use wasm_bindgen::prelude::*;
 
-/// An interval represents a context-agnostic inclusive [lower, upper] time range. While Interval may be accessible from JS, the Rust implementation includes additional operator overloads for simplified arithmetic.
+/// An interval represents a context-agnostic inclusive [lower, upper] time range. While Interval may be accessible from JS, the Rust implementation includes additional operator overloads for simplified arithmetic. When using JS, use `.toJSON()` to convert to an array of numbers. JS users can also use indexing to get the lower and upper bounds.
 ///
 /// # Examples
 ///
@@ -13,6 +13,8 @@ use wasm_bindgen::prelude::*;
 ///
 /// let interval1 = Interval::new(0., 10.);
 /// let interval2 = Interval::new(5., 16.);
+///
+/// // sample arithmetic
 /// let summed_interval = Interval::new(5., 26.);
 /// assert_eq!(interval1 + interval2, summed_interval);
 ///
