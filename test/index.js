@@ -102,20 +102,49 @@ describe("temporal-networks", () => {
       const step = plan.addStep("test", (duration = [1, 5]));
       const step2 = plan.addStep("test2", (duration = [2, 9]));
       const step3 = plan.addStep("test3", (duration = [0, 10]));
-      console.log(
-        step.start,
-        step.end,
-        step2.start,
-        step2.end,
-        step3.start,
-        step3.end
-      );
 
       plan.addConstraint(step.end, step2.start);
       plan.addConstraint(step2.end, step3.start);
 
       expect(plan.timeUntil(step3.start)).to.equal(3);
       expect(plan.timeUntil(step3.end)).to.equal(24);
+    });
+  });
+
+  describe("examples", () => {
+    describe("taken from STNs for EVAs", () => {
+      function build() {
+        const plan = new Plan();
+        const X0 = plan.createEvent("X0");
+        const L = plan.addStep("L", (duration = [30, 40]));
+        const S = plan.addStep("S", (duration = [40, 50]));
+        plan.addConstraint(X0, L.start, (duration = [10, 20]));
+        plan.addConstraint(X0, S.end, (duration = [60, 70]));
+        plan.addConstraint(S.start, L.end, (duration = [10, 20]));
+        plan.compile();
+        return { plan, X0, L, S };
+      }
+
+      it("should report correct implicit intervals", () => {
+        const { plan, X0, L, S } = build();
+        expect(plan.timeBetween(L.start, S.start), "Ls to Ss upper").to.equal(
+          20
+        );
+        expect(plan.timeBetween(S.start, L.start), "Ls to Ss lower").to.equal(
+          -10
+        );
+
+        expect(plan.timeBetween(L.start, S.end), "Ls to Se upper").to.equal(60);
+        expect(plan.timeBetween(S.end, L.start), "Ls to Se lower").to.equal(
+          -50
+        );
+
+        expect(plan.timeBetween(X0, L.end), "X0 to Le upper").to.equal(50);
+        expect(plan.timeBetween(L.end, X0), "X0 to Le lower").to.equal(-40);
+
+        expect(plan.timeBetween(X0, S.start), "X0 to Ss upper").to.equal(30);
+        expect(plan.timeBetween(S.start, X0), "X0 to Ss lower").to.equal(-20);
+      });
     });
   });
 });

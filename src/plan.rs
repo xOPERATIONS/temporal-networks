@@ -1,13 +1,22 @@
+//! # Plan
+//! Defines an API designed to be exported to WASM that can perform time math without requiring the user to understand the underlying data structures or algorithms.
+//!
+//! ## Nomenclature (and types)
+//! * **`Plan`**: a set of temporal constraints describing a set of actions to occur. Our implementation of `Plan` can currently handle actions that occur in series or parallel (or any mix thereof)
+//! * **`Event`**: a moment in time in the `Plan`
+//! * **`Step`**: A pair of start and end `Event`s
+
 use petgraph::graphmap::DiGraphMap;
 use std::collections::BTreeMap;
 use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
-use web_sys::console;
+// use web_sys::console;
 
 use super::algorithms::floyd_warshall;
 use super::interval;
 
+/// An ID representing an event in the plan
 type StepID = i32;
 
 /// Steps represent a logical action that occurs over a period of time. They implicitly generate start and end events, which are used by `Plan`
@@ -80,28 +89,29 @@ impl Plan {
                     None => false,
                 })
         })
-        // all outgoing edges should be >= 0 for the first node
-        // self.dispatchable.nodes().find(|n| {
-        //     self.dispatchable
-        //         .edges(*n)
-        //         .all(|(_s, _t, weight)| *weight >= 0.)
-        // })
+    }
+
+    /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addStep`, use `addStep` instead
+    #[wasm_bindgen(js_name = createEvent)]
+    pub fn create_event(&mut self, identifier: String) -> StepID {
+        let id = self.id_to_indices.len() as i32;
+        self.id_to_indices.insert(identifier.clone(), id);
+        let n = self.stn.add_node(id);
+
+        self.dirty = true;
+        n
     }
 
     /// Build a step but don't add it to the graph
     fn new_step(&mut self, identifier: String) -> Step {
-        // keep track of IDs
-        let start_id = self.id_to_indices.len() as i32;
-        let end_id = self.id_to_indices.len() as i32 + 1;
-
-        self.id_to_indices
-            .insert(identifier.clone() + "__START", start_id);
-        self.id_to_indices
-            .insert(identifier.clone() + "__END", end_id);
+        let start_identifier = identifier.clone() + "__START";
+        let end_identifier = identifier.clone() + "__END";
+        let start_id = self.create_event(start_identifier);
+        let end_id = self.create_event(end_identifier);
         Step(start_id, end_id, identifier)
     }
 
-    /// Create a new step and add it to this plan. Can optionally follow and/or precede any step in the timeline
+    /// Create a new step and add it to this plan
     #[wasm_bindgen(catch, js_name = addStep)]
     pub fn add_step(&mut self, identifier: String, duration: Option<Vec<f64>>) -> Step {
         let d = duration.unwrap_or(vec![0., 0.]);
@@ -133,6 +143,13 @@ impl Plan {
             Ok(d) => d,
             Err(e) => return Err(JsValue::from_str(&e)),
         };
+
+        // for (pair, value) in mappings.iter() {
+        //     console::log_2(
+        //         &JsValue::from_serde(pair).unwrap(),
+        //         &JsValue::from_f64(*value),
+        //     );
+        // }
 
         // track the constraint table for debugging
         self.constraint_table = mappings.clone();
@@ -220,10 +237,7 @@ impl Plan {
             }
         };
 
-        let v = JsValue::from_f64(*t);
-        console::log_1(&v);
-
-        Ok(v)
+        Ok(JsValue::from_f64(*t))
     }
 
     /// Get the earliest time of an event. Assume 0 indexed on the plan's start
