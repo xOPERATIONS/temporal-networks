@@ -63,7 +63,7 @@ describe("temporal-networks", () => {
 
       expect(step instanceof Step).to.be.true;
       expect(plan.getDuration(step).toJSON()).to.deep.equal([0, 0]);
-      expect(step.toString()).to.equal(testName);
+      expect(step.name).to.equal(testName);
     });
 
     it("should create a step with a duration", () => {

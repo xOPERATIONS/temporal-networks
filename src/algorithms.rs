@@ -3,9 +3,9 @@ use petgraph::graphmap::DiGraphMap;
 use std::collections::BTreeMap;
 use std::string::String;
 
-/// Similar to Python's networkx Floyd Warshall implementation. Performs all-pairs shortest paths against a graph and returns a mapping of the shortest paths
+/// Similar to [Python's networkx Floyd Warshall implementation](https://networkx.github.io/documentation/stable/reference/algorithms/generated/networkx.algorithms.shortest_paths.dense.floyd_warshall.html#networkx.algorithms.shortest_paths.dense.floyd_warshall). Performs all-pairs shortest paths against a graph and returns a mapping of the shortest paths
 pub fn floyd_warshall(graph: &DiGraphMap<i32, f64>) -> Result<BTreeMap<(i32, i32), f64>, String> {
-    // TODO: use generics instead
+    // TODO: would be neat to use generics instead
     let mut mappings = BTreeMap::new();
 
     // initialize distances to self to 0

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Edge",""],["RegistrationEnum","(node count, edge count) tuple struct"],["RegistrationOptions",""],["RegistrationPayload",""],["STN",""]]});
+initSidebarItems({"fn":[["dump_constraint_table","Create an N+1 x N+1 matrix of strings representing the constraint table, where N is the number of nodes. The resultant matrix includes column and row headers."]],"struct":[["Edge",""],["RegistrationEnum","(node count, edge count) tuple struct"],["RegistrationOptions",""],["RegistrationPayload",""],["STN",""]]});

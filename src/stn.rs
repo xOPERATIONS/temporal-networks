@@ -271,7 +271,7 @@ fn naive_schedule(stn: &mut STN, node_id: i32, as_performed: f64) -> Result<(), 
 /// `[ [ "",   "1",  "2" ],
 ///    [ "1",  "0",  "5" ],
 ///    [ "2", "-4",  "0" ] ]`
-fn dump_constraint_table(stn: &STN) -> Vec<Vec<String>> {
+pub fn dump_constraint_table(stn: &STN) -> Vec<Vec<String>> {
     let num_indices = stn.node_indices.len() + 1_usize;
     let mut res = vec![vec![String::new(); num_indices]; num_indices];
     let iter = stn.node_indices.iter();
@@ -1120,7 +1120,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_full_maestro_json_input_STS_134_18_nodes_22_real_edges() {
+    fn test_full_maestro_json_input_sts_134_18_nodes_22_real_edges() {
         let input = json!(
         {
         "edges": [

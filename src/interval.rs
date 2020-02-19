@@ -28,11 +28,6 @@ use wasm_bindgen::prelude::*;
 #[derive(Deserialize, Serialize, Copy, Clone, Debug, PartialEq, Default)]
 pub struct Interval(pub f64, pub f64);
 
-/// Get an interval from a vector
-pub fn from_vec(other: Vec<f64>) -> Interval {
-    Interval::new(other[0], other[1])
-}
-
 #[wasm_bindgen]
 impl Interval {
     /// Create a new Interval
@@ -41,10 +36,9 @@ impl Interval {
         Interval(lower, upper)
     }
 
-    /// Convert the range to a string
-    #[wasm_bindgen(js_name = toString)]
-    pub fn to_string(&self) -> String {
-        format!("[{}, {}]", self.0, self.1)
+    /// Get an interval from a vector
+    pub fn from_vec(other: Vec<f64>) -> Interval {
+        Interval::new(other[0], other[1])
     }
 
     /// Convert the interval to JSON `[lower, upper]`
