@@ -22,9 +22,9 @@ pub fn floyd_warshall(graph: &DiGraphMap<i32, f64>) -> Result<BTreeMap<(i32, i32
     let triangles = graph.nodes().permutations(3);
 
     for triangle in triangles {
-        let i = triangle[0];
-        let j = triangle[1];
-        let k = triangle[2];
+        let k = triangle[0];
+        let i = triangle[1];
+        let j = triangle[2];
         let position = (i, j);
 
         let d_ik = match mappings.get(&(i, k)) {
