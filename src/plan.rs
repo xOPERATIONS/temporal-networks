@@ -187,6 +187,8 @@ impl Plan {
         Ok(())
     }
 
+    // TODO: HOW TO HANDLE INF???
+
     pub fn get_schedule() {}
 
     pub fn complete_step() {}
@@ -218,6 +220,7 @@ impl Plan {
             }
         };
 
+        // TODO: return interval or just Vec<f64>?
         Ok(Interval::new(-*lower, *upper))
     }
 
