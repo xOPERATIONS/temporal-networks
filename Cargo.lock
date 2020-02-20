@@ -211,7 +211,7 @@ dependencies = [
 
 [[package]]
 name = "temporal-networks"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "console_error_panic_hook 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",

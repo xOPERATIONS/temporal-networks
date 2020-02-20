@@ -1,15 +1,15 @@
 # Temporal Networks
 
-Implements Simple Temporal Networks in Rust and compiles to WASM for use in any JS project.
+Implements Temporal Networks in Rust and compiles to WASM for use in any JS project.
 
-[Library documentation](https://xoperations.github.io/temporal-networks/lib/stn/)
+[JS documentation](https://xoperations.github.io/temporal-networks/js/modules/_index_d_.html) | [Rust documentation](https://xoperations.github.io/temporal-networks/rust/temporal_networks/)
 
 [![npm version](https://img.shields.io/npm/v/@xoperations/temporal-networks.svg?style=flat)](https://npmjs.org/package/@xoperations/temporal-networks "View this project on npm")
 
-## What is a Simple Temporal Network?
+## What is a Temporal Network?
 
-* See [here](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/STNs_for_EVAs.pdf) for a tutorial
-* There are additional papers in [docs/references](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/)
+* See [here](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/STNs_for_EVAs.pdf) for a tutorial on Simple Temporal Networks, a data structure that underpins temporal inference
+* There are additional papers and lecture notes in [docs/references](https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/)
 
 ## End User Installation
 

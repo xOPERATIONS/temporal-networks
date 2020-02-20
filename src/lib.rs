@@ -9,23 +9,19 @@ extern crate serde_derive;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
-use web_sys::console;
 
 pub mod algorithms;
 pub mod interval;
 pub mod plan;
-pub mod stn;
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+/// Recommended to run once when this package imported in JS but not required. Calling this message first ensures that any Rust panics that occur later will result in useful stacktraces in JS (as opposed to just getting an opaque `unreachable code` error)
 #[wasm_bindgen]
-pub fn run() -> Result<(), JsValue> {
+pub fn install() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
-
-    console::log_1(&JsValue::from_str("Initialized STN library"));
-
     Ok(())
 }

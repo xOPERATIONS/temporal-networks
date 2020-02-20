@@ -1,8 +1,13 @@
 const { expect } = require("chai");
 const wasm = require("../pkg");
-const { Interval, Plan, Step } = wasm;
+const { install, Interval, Plan, Step } = wasm;
 
 describe("temporal-networks", () => {
+  before(() => {
+    // not required but useful for debugging
+    install();
+  });
+
   it("should have importable WASM", () => {
     expect(wasm).to.be.ok;
   });
@@ -144,7 +149,7 @@ describe("temporal-networks", () => {
   });
 
   describe("examples", () => {
-    describe("taken from STNs for EVAs", () => {
+    describe("from STNs for EVAs", () => {
       const buildExample = () => {
         const plan = new Plan();
         const X0 = plan.createEvent("X0");
@@ -196,17 +201,7 @@ describe("temporal-networks", () => {
     });
   });
 
-  describe("MIT 16.412 L02 slide 76", () => {
-    // see docs/references/
-    const example1 = {
-      edges: [
-        { source: 0, target: 1, interval: [1, 10] },
-        { source: 0, target: 2, interval: [0, 9] },
-        { source: 1, target: 3, interval: [1, 1] },
-        { source: 2, target: 3, interval: [2, 2] }
-      ]
-    };
-
+  describe("from MIT 16.412 L02 slide 76", () => {
     const buildExample = () => {
       const plan = new Plan();
       const A = plan.createEvent("A");
@@ -228,13 +223,13 @@ describe("temporal-networks", () => {
     });
   });
 
-  describe("STS 134", () => {
+  describe("from STS 134 summary", () => {
     const buildExample = (uncertainty = 0.0) => {
       const interval = d => [d - uncertainty * d, d + uncertainty * d];
 
       const plan = new Plan();
-      // made up a 6.5 hour lim cons
-      const limCons = plan.addStep("LIM CONS", interval([390, 390]));
+      // made up an 8 hour lim cons
+      const limCons = plan.addStep("LIM CONS", interval([0, 480]));
 
       // EGRESS/SETUP
       const ev1Egress = plan.addStep(
@@ -374,6 +369,11 @@ describe("temporal-networks", () => {
     it("should compile", () => {
       const { plan } = buildExample();
       expect(plan.compile).to.not.throw;
+    });
+
+    it.skip("should know the start of LIM CONS is the plan root", () => {
+      const { plan, limCons } = buildExample();
+      expect(plan.root).to.equal(limCons.start);
     });
   });
 });

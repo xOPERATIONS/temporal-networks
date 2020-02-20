@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["__wasm_bindgen_generated_run",""],["run",""]],"mod":[["algorithms",""],["interval",""],["plan","Plan Defines an API designed to be exported to WASM that can perform time math without requiring the user to understand the underlying data structures or algorithms."],["stn",""]]});

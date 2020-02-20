@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Node","Implementation of the `Formatter` trait for node.js"]]});

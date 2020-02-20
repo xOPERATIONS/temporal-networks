@@ -28,7 +28,7 @@ pub struct Step(pub EventID, pub EventID, String);
 
 #[wasm_bindgen]
 impl Step {
-    /// Represents a non-unique identifier of the step
+    /// Represents the unique identifier of the step
     #[wasm_bindgen(getter)]
     pub fn name(&self) -> String {
         self.2.clone()
@@ -56,6 +56,8 @@ impl fmt::Display for Step {
 /// A `Plan` orchestrates events and the timing constraints between them. It allows for querying arbitrary timing information with knowledge of the underlying data structure.
 ///
 /// # Example
+///
+/// Creating a Plan and adding Steps with constraints in Rust
 ///
 /// ```
 /// use temporal_networks::plan::Plan;
@@ -142,7 +144,7 @@ impl Plan {
         Step(start_id, end_id, identifier)
     }
 
-    /// Create a new step and add it to this plan
+    /// Create a new step and add it to this plan. The identifier is recommended but not required to be unique (being unique may become a requirement in the future)
     #[wasm_bindgen(catch, js_name = addStep)]
     pub fn add_step(&mut self, identifier: String, duration: Option<Vec<f64>>) -> Step {
         let d = duration.unwrap_or(vec![0., 0.]);
@@ -186,10 +188,6 @@ impl Plan {
         self.dirty = false;
         Ok(())
     }
-
-    // TODO: HOW TO HANDLE INF???
-
-    pub fn get_schedule() {}
 
     pub fn complete_step() {}
 

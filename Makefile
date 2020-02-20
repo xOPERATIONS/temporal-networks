@@ -6,8 +6,9 @@ SHELL = /bin/sh
 all: build
 
 # target: doc - create docs
-doc:
-	cargo doc --no-deps && cp -r target/doc/* docs/lib
+doc: build
+	cargo doc --no-deps && cp -r target/doc/* docs/rust
+	npx typedoc pkg --includeDeclarations --excludeExternals --out docs/js
 
 # target: doc.open - open docs in a web browser
 doc.open:
