@@ -2,8 +2,8 @@ name: Test
 on:
   push:
     branches:
-      - '*'
-      - '!master'
+      - "*"
+      - "!master"
 
 jobs:
   test:
@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: "12.x"
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -41,3 +41,6 @@ jobs:
 
       - name: Run tests
         run: make test -k
+
+      - name: Lint
+        run: make lint -k
