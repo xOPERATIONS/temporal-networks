@@ -14,6 +14,7 @@ use std::fmt;
 use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
+use web_sys::console;
 
 use super::algorithms::floyd_warshall;
 use super::interval::Interval;
@@ -106,22 +107,22 @@ impl Plan {
     /// Get the first event in the plan. Found implicitly based on the current constraints
     #[wasm_bindgen(getter)]
     pub fn root(&mut self) -> Option<EventID> {
-        if self.dirty {
-            match self.compile() {
-                Ok(_) => (),
-                Err(_e) => return None,
-            };
-        }
+        match self.compile() {
+            Ok(_) => (),
+            Err(_e) => return None,
+        };
 
         // all incoming edges should be <= 0 for the first node
-        self.dispatchable.nodes().find(|s| {
+        let ret = self.dispatchable.nodes().find(|s| {
             self.dispatchable
                 .neighbors_directed(*s, petgraph::Incoming)
                 .all(|t| match self.dispatchable.edge_weight(t, *s) {
                     Some(w) => *w <= 0.,
                     None => false,
                 })
-        })
+        });
+        // console::log_1(&JsValue::from_serde(&ret).unwrap());
+        ret
     }
 
     /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addStep`, use `addStep` instead
@@ -171,11 +172,18 @@ impl Plan {
     /// Compile the plan into a dispatchable form. A dispatchable form is required to query the plan for almost any scheduling information. This method is called implicitly when you attempt to query the plan when the dispatchable graph is not up-to-date. However, you can proactively call `compile` at a time that is computationally convenient for your application to avoid paying the performance penalty when querying the plan
     #[wasm_bindgen(catch)]
     pub fn compile(&mut self) -> Result<(), JsValue> {
+        if !self.dirty {
+            return Ok(());
+        }
+
         // run all-pairs shortest paths
         let mappings = match floyd_warshall(&self.stn) {
             Ok(d) => d,
             Err(e) => return Err(JsValue::from_str(&e)),
         };
+
+        let s = format!("{:?}", mappings);
+        console::log_1(&JsValue::from(&s));
 
         // reset the dispatchable graph
         self.dispatchable = DiGraphMap::new();
@@ -194,11 +202,9 @@ impl Plan {
     /// Get the interval between two events
     #[wasm_bindgen(catch)]
     pub fn interval(&mut self, source: EventID, target: EventID) -> Result<Interval, JsValue> {
-        if self.dirty {
-            self.compile()?;
-        }
+        self.compile()?;
 
-        let lower = match self.dispatchable.edge_weight(target, source) {
+        let l = match self.dispatchable.edge_weight(target, source) {
             Some(l) => l,
             None => {
                 return Err(JsValue::from_str(&format!(
@@ -209,7 +215,7 @@ impl Plan {
         };
 
         let upper = match self.dispatchable.edge_weight(source, target) {
-            Some(l) => l,
+            Some(u) => u,
             None => {
                 return Err(JsValue::from_str(&format!(
                     "missing upper edge: {} to {}",
@@ -218,8 +224,15 @@ impl Plan {
             }
         };
 
-        // TODO: return interval or just Vec<f64>?
-        Ok(Interval::new(-*lower, *upper))
+        // avoid returning -0
+        let lower: f64;
+        if *l == 0. {
+            lower = -0.;
+        } else {
+            lower = *l;
+        }
+
+        Ok(Interval::new(-lower, *upper))
     }
 
     /// Low-level API to get the directional distance between two events. Advanced use only. If you can't explain why you should use this over `interval`, use `interval` instead
@@ -239,11 +252,9 @@ impl Plan {
             )));
         }
 
-        if self.dirty {
-            match self.compile() {
-                Ok(_) => (),
-                Err(e) => return Err(e),
-            }
+        match self.compile() {
+            Ok(_) => (),
+            Err(e) => return Err(e),
         }
 
         let t = match self.dispatchable.edge_weight(source, target) {
@@ -289,7 +300,7 @@ impl Plan {
         Ok(())
     }
 
-    pub fn remove_constrainst() {}
+    pub fn remove_constraint() {}
 
-    pub fn remove_constrainsts() {}
+    pub fn remove_constraints() {}
 }

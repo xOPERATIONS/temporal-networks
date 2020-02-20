@@ -221,128 +221,145 @@ describe("temporal-networks", () => {
       expect(plan.interval(C, B).toJSON()).to.deep.equal([1, 1]);
       expect(plan.interval(A, D).toJSON()).to.deep.equal([2, 11]);
     });
+
+    it("can find the first step", () => {
+      const { plan, A } = buildExample();
+      expect(plan.root).to.equal(A);
+    });
   });
 
   describe("from STS 134 summary", () => {
     const buildExample = (uncertainty = 0.0) => {
-      const interval = d => [d - uncertainty * d, d + uncertainty * d];
+      const interval = ([lower, upper]) => [
+        lower - uncertainty * lower,
+        upper + uncertainty * upper
+      ];
 
       const plan = new Plan();
-      // made up an 8 hour lim cons
+      // make up an 8 hour lim cons
       const limCons = plan.addStep("LIM CONS", interval([0, 480]));
 
       // EGRESS/SETUP
       const ev1Egress = plan.addStep(
         "EV1 performing EGRESS/SETUP",
-        interval([15, 15])
+        interval([10, 20])
       );
       const ev3Egress = plan.addStep(
         "EV3 performing EGRESS/SETUP",
-        interval([45, 45])
+        interval([40, 50])
       );
       plan.addConstraint(limCons.start, ev1Egress.start);
       plan.addConstraint(limCons.start, ev3Egress.start);
-      // sync edge according to xOPERATIONS/maestro
-      plan.addConstraint(ev1Egress.end, ev3Egress.end);
 
       const ev1MISSE7 = plan.addStep(
         "EV1 performing MISSE 7 RETRIEVE",
-        interval([60, 60])
+        interval([55, 65])
       );
       const ev3MISSE7 = plan.addStep(
         "EV3 performing MISSE 7 RETRIEVE",
-        interval([60, 60])
+        interval([55, 65])
       );
-      // connect to the last sync edge
+      // note that starting MISSE7 requires both crew are both done with EGRESS
       plan.addConstraint(ev1Egress.end, ev1MISSE7.start);
+      plan.addConstraint(ev1Egress.end, ev3MISSE7.start);
       plan.addConstraint(ev3Egress.end, ev3MISSE7.start);
-      // sync edge
-      plan.addConstraint(ev1Egress.end, ev3MISSE7.end);
+      plan.addConstraint(ev3Egress.end, ev1MISSE7.start);
 
-      const ev1MISSE8 = plan.addStep(
-        "EV1 performing MISSE 8 Install",
-        interval([40, 40])
-      );
-      const ev3CETA = plan.addStep(
-        "EV3 performing S3 CETA Light Install",
-        interval([25, 25])
-      );
-      const ev3SARJ = plan.addStep(
-        "EV3 performing Stbd SARJ Cover 7 Install",
-        interval([25, 25])
-      );
-      const ev1P3P4NH3Install = plan.addStep(
-        "EV1 performing P3/P4 NH3 Jumper Install",
-        interval([35, 35])
-      );
-      const ev3P3P4NH3Install = plan.addStep(
-        "EV3 performing P3/P4 NH3 Jumper Install",
-        interval([25, 25])
-      );
-      // connect to the last sync edge
-      plan.addConstraint(ev1MISSE7.end, ev1MISSE8.start);
-      plan.addConstraint(ev3MISSE7.end, ev3CETA.start);
-
-      plan.addConstraint(ev1MISSE8.end, ev1P3P4NH3Install.start);
-      plan.addConstraint(ev3CETA.end, ev3SARJ.start);
-      plan.addConstraint(ev3SARJ.end, ev3P3P4NH3Install.start);
-      // sync edge
       plan.addConstraint(
-        ev1P3P4NH3Install.end,
-        ev3P3P4NH3Install.end,
-        interval([10, 10])
+        ev1MISSE7.end,
+        limCons.end,
+        interval([0, Number.MAX_VALUE])
+      );
+      plan.addConstraint(
+        ev3MISSE7.end,
+        limCons.end,
+        interval([0, Number.MAX_VALUE])
       );
 
-      const ev1P5P6NH3Vent = plan.addStep(
-        "EV1 performing P5/P6 NH3 Jumper Install / N2 Vent",
-        interval([35, 35])
-      );
-      const ev3P3P4NH3TempStow = plan.addStep(
-        "EV3 performing P3/P4 NH3 Jumper Temp Stow",
-        interval([35, 35])
-      );
-      const ev1EWC = plan.addStep(
-        "EV1 performing EWC Antenna Install",
-        interval([140, 140])
-      );
-      const ev3EWC = plan.addStep(
-        "EV3 performing EWC Antenna Install",
-        interval([165, 165])
-      );
-      // connect to the last sync edge
-      plan.addConstraint(ev1P3P4NH3Install.end, ev1P5P6NH3Vent.start);
-      plan.addConstraint(ev3P3P4NH3Install.end, ev3P3P4NH3TempStow.start);
+      // const ev1MISSE8 = plan.addStep(
+      //   "EV1 performing MISSE 8 Install",
+      //   interval([40, 40])
+      // );
+      // const ev3CETA = plan.addStep(
+      //   "EV3 performing S3 CETA Light Install",
+      //   interval([25, 25])
+      // );
+      // const ev3SARJ = plan.addStep(
+      //   "EV3 performing Stbd SARJ Cover 7 Install",
+      //   interval([25, 25])
+      // );
+      // const ev1P3P4NH3Install = plan.addStep(
+      //   "EV1 performing P3/P4 NH3 Jumper Install",
+      //   interval([35, 35])
+      // );
+      // const ev3P3P4NH3Install = plan.addStep(
+      //   "EV3 performing P3/P4 NH3 Jumper Install",
+      //   interval([25, 25])
+      // );
+      // // connect to the last sync edge
+      // plan.addConstraint(ev1MISSE7.end, ev1MISSE8.start);
+      // plan.addConstraint(ev3MISSE7.end, ev3CETA.start);
 
-      plan.addConstraint(ev1P5P6NH3Vent.end, ev1EWC.start);
-      plan.addConstraint(ev3P3P4NH3TempStow.end, ev3EWC.start);
-      // sync edge
-      plan.addConstraint(ev1EWC.end, ev3EWC.end, interval([10, 10]));
+      // plan.addConstraint(ev1MISSE8.end, ev1P3P4NH3Install.start);
+      // plan.addConstraint(ev3CETA.end, ev3SARJ.start);
+      // plan.addConstraint(ev3SARJ.end, ev3P3P4NH3Install.start);
+      // // sync edge
+      // plan.addConstraint(
+      //   ev1P3P4NH3Install.end,
+      //   ev3P3P4NH3Install.end,
+      //   interval([10, 10])
+      // );
 
-      const ev1VTEB = plan.addStep(
-        "EV1 performing VTEB Cleanup",
-        interval([25, 25])
-      );
+      // const ev1P5P6NH3Vent = plan.addStep(
+      //   "EV1 performing P5/P6 NH3 Jumper Install / N2 Vent",
+      //   interval([35, 35])
+      // );
+      // const ev3P3P4NH3TempStow = plan.addStep(
+      //   "EV3 performing P3/P4 NH3 Jumper Temp Stow",
+      //   interval([35, 35])
+      // );
+      // const ev1EWC = plan.addStep(
+      //   "EV1 performing EWC Antenna Install",
+      //   interval([140, 140])
+      // );
+      // const ev3EWC = plan.addStep(
+      //   "EV3 performing EWC Antenna Install",
+      //   interval([165, 165])
+      // );
+      // // connect to the last sync edge
+      // plan.addConstraint(ev1P3P4NH3Install.end, ev1P5P6NH3Vent.start);
+      // plan.addConstraint(ev3P3P4NH3Install.end, ev3P3P4NH3TempStow.start);
 
-      const ev1Ingress = plan.addStep(
-        "EV1 performing Cleanup / Ingress",
-        interval([30, 30])
-      );
-      const ev3Ingress = plan.addStep(
-        "EV3 performing Cleanup / Ingress",
-        interval([30, 30])
-      );
-      // connect to last sync edge
-      plan.addConstraint(ev1EWC.end, ev1VTEB.start);
-      plan.addConstraint(ev3EWC.end, ev3Ingress.start);
+      // plan.addConstraint(ev1P5P6NH3Vent.end, ev1EWC.start);
+      // plan.addConstraint(ev3P3P4NH3TempStow.end, ev3EWC.start);
+      // // sync edge
+      // plan.addConstraint(ev1EWC.end, ev3EWC.end, interval([10, 10]));
 
-      plan.addConstraint(ev1VTEB.end, ev1Ingress.start);
+      // const ev1VTEB = plan.addStep(
+      //   "EV1 performing VTEB Cleanup",
+      //   interval([25, 25])
+      // );
 
-      // sync edge (may not be necessary?)
-      plan.addConstraint(ev1Ingress.end, ev3Ingress.end);
+      // const ev1Ingress = plan.addStep(
+      //   "EV1 performing Cleanup / Ingress",
+      //   interval([30, 30])
+      // );
+      // const ev3Ingress = plan.addStep(
+      //   "EV3 performing Cleanup / Ingress",
+      //   interval([30, 30])
+      // );
+      // // connect to last sync edge
+      // plan.addConstraint(ev1EWC.end, ev1VTEB.start);
+      // plan.addConstraint(ev3EWC.end, ev3Ingress.start);
 
-      // make sure the EVA ends on time
-      plan.addConstraint(ev1Ingress.end, limCons.end);
-      plan.addConstraint(ev3Ingress.end, limCons.end);
+      // plan.addConstraint(ev1VTEB.end, ev1Ingress.start);
+
+      // // sync edge (may not be necessary?)
+      // plan.addConstraint(ev1Ingress.end, ev3Ingress.end);
+
+      // // make sure the EVA ends on time
+      // plan.addConstraint(ev1Ingress.end, limCons.end);
+      // plan.addConstraint(ev3Ingress.end, limCons.end);
 
       return {
         plan,
@@ -350,19 +367,19 @@ describe("temporal-networks", () => {
         ev1Egress,
         ev3Egress,
         ev1MISSE7,
-        ev3MISSE7,
-        ev1MISSE8,
-        ev3CETA,
-        ev3SARJ,
-        ev1P3P4NH3Install,
-        ev3P3P4NH3Install,
-        ev1P5P6NH3Vent,
-        ev3P3P4NH3TempStow,
-        ev1EWC,
-        ev3EWC,
-        ev1VTEB,
-        ev1Ingress,
-        ev3Ingress
+        ev3MISSE7
+        // ev1MISSE8,
+        // ev3CETA,
+        // ev3SARJ,
+        // ev1P3P4NH3Install,
+        // ev3P3P4NH3Install,
+        // ev1P5P6NH3Vent,
+        // ev3P3P4NH3TempStow,
+        // ev1EWC,
+        // ev3EWC,
+        // ev1VTEB,
+        // ev1Ingress,
+        // ev3Ingress
       };
     };
 
@@ -371,9 +388,28 @@ describe("temporal-networks", () => {
       expect(plan.compile).to.not.throw;
     });
 
-    it.skip("should know the start of LIM CONS is the plan root", () => {
+    it("should know the start of LIM CONS is the plan root", () => {
       const { plan, limCons } = buildExample();
       expect(plan.root).to.equal(limCons.start);
+    });
+
+    it("should know that EGRESS happens immediately", () => {
+      const { plan, ev1Egress, ev3Egress } = buildExample();
+      expect(plan.interval(plan.root, ev1Egress.start).toJSON()).to.deep.equal([
+        0,
+        0
+      ]);
+      expect(plan.interval(plan.root, ev3Egress.start).toJSON()).to.deep.equal([
+        0,
+        0
+      ]);
+    });
+
+    it.only("should know that MISSE7 INSTALL start needs to be synced", () => {
+      const { plan, ev1MISSE7, ev3MISSE7 } = buildExample();
+      const ev1StartMISSE7 = plan.interval(plan.root, ev1MISSE7.start).toJSON();
+      const ev3StartMISSE7 = plan.interval(plan.root, ev3MISSE7.start).toJSON();
+      expect(ev1StartMISSE7 === ev3StartMISSE7).to.be.true;
     });
   });
 });
