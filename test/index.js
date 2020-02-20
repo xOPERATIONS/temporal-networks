@@ -39,6 +39,41 @@ describe("temporal-networks", () => {
       const i = new Interval(9, 7);
       expect(i.isValid()).to.be.false;
     });
+
+    it("can handle infinity as Number.MAX_VALUE", () => {
+      let i = new Interval(0, Number.MAX_VALUE);
+      expect(i.isValid()).to.be.true;
+
+      i = new Interval(0, Number.MAX_VALUE);
+      expect(i.toJSON()).to.deep.equal([0, Number.MAX_VALUE]);
+      expect(i.contains(-1)).to.be.false;
+
+      // check 10 random positive floats against [0, inf]
+      for (let j = 0; j < 10; j++) {
+        const anyPossiblePosF64 = Math.random() * Number.MAX_VALUE;
+        expect(i.contains(anyPossiblePosF64)).to.be.true;
+      }
+
+      i = new Interval(-Number.MAX_VALUE, 0);
+      expect(i.isValid()).to.be.true;
+      expect(i.contains(1)).to.be.false;
+
+      // check 10 random negative floats against [-inf, 0]
+      for (let j = 0; j < 10; j++) {
+        const anyPossibleNegF64 = -Math.random() * Number.MAX_VALUE;
+        expect(i.contains(anyPossibleNegF64)).to.be.true;
+      }
+
+      i = new Interval(-Number.MAX_VALUE, Number.MAX_VALUE);
+      expect(i.isValid()).to.be.true;
+
+      // check 10 random floats against [-inf, inf]
+      for (let j = 0; j < 10; j++) {
+        const anyPossibleF64 =
+          Math.random() * Number.MAX_VALUE * (Math.random() > 0.5 ? 1 : -1);
+        expect(i.contains(anyPossibleF64)).to.be.true;
+      }
+    });
   });
 
   describe("Plan", () => {
@@ -342,16 +377,3 @@ describe("temporal-networks", () => {
     });
   });
 });
-
-//   it("should allow parallel steps", () => {
-//     const plan = new Plan();
-
-//     const root = plan.addStep();
-
-//     // two steps in parallel; both start at the plan root
-//     plan.addStep((follows = root), (duration = [4, 9]));
-//     plan.addStep((follows = root), (duration = [5, 10]));
-
-//     // union the intervals
-//     expect(plan.getDuration()).to.equal([5, 9]);
-//   });
