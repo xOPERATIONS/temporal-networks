@@ -84,8 +84,12 @@ impl fmt::Display for Step {
 #[wasm_bindgen]
 #[derive(Debug, Default)]
 pub struct Plan {
+    /// the STN as planned by the user
     stn: DiGraphMap<EventID, f64>,
+    // STN in dispatchable form after APSP
     dispatchable: DiGraphMap<EventID, f64>,
+    /// Execution windows when each event can be scheduled. Referenced to a timeframe where the plan.root() is t=0
+    execution_windows: BTreeMap<EventID, Interval>,
     /// housekeeping to keep track of step identifiers. DiGraphMap can't work with String NodeTraits
     id_to_indices: BTreeMap<String, EventID>,
     /// Whether or not changes have been made since the last compile
@@ -97,10 +101,8 @@ impl Plan {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Plan {
         Plan {
-            stn: DiGraphMap::new(),
-            dispatchable: DiGraphMap::new(),
-            id_to_indices: BTreeMap::new(),
             dirty: true,
+            ..Default::default()
         }
     }
 
@@ -182,8 +184,8 @@ impl Plan {
             Err(e) => return Err(JsValue::from_str(&e)),
         };
 
-        let s = format!("{:?}", mappings);
-        console::log_1(&JsValue::from(&s));
+        // let s = format!("{:?}", mappings);
+        // console::log_1(&JsValue::from(&s));
 
         // reset the dispatchable graph
         self.dispatchable = DiGraphMap::new();
@@ -197,7 +199,54 @@ impl Plan {
         Ok(())
     }
 
-    pub fn complete_step() {}
+    /// Greedily update execution windows
+    fn update_schedule(&mut self, event: EventID) -> Result<(), JsValue> {
+        self.compile()?;
+
+        let d = self.dispatchable.clone();
+        for neighbor in d.neighbors(event) {
+            let mut neighbor_window = match self.execution_windows.get(&neighbor) {
+                Some(i) => i,
+                None => return Err(JsValue::from_str(&format!("no such event {}", neighbor))),
+            };
+            // check that the execution window hasn't converged to a [same, same] interval, which would indicate it has already been scheduled
+            if neighbor_window.converged() {
+                continue;
+            }
+            let event_window = match self.execution_windows.get(&event) {
+                Some(i) => i,
+                None => return Err(JsValue::from_str(&format!("no such event {}", event))),
+            };
+
+            let time_to_neighbor = self.interval(event, neighbor)?;
+
+            neighbor_window = neighbor_window & (event_window + time_to_neighbor);
+            self.execution_windows.insert(*neighbor, neighbor_window);
+        }
+
+        Ok(())
+    }
+
+    /// Low-level API for marking an event complete. Advanced use only. If you can't explain why you should use this over `completeStep`, use `completeStep` instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the plan started
+    #[wasm_bindgen(catch, js_name = commitEvent)]
+    pub fn commit_event(&mut self, event: EventID, time: f64) -> Result<(), JsValue> {
+        self.execution_windows
+            .insert(event, Interval::new(time, time));
+        self.update_schedule(event)?;
+
+        Ok(())
+    }
+
+    /// Mark a step complete to update the schedule to following steps. The time should be the elapsed time since the plan started (in the same units as well)
+    #[wasm_bindgen(catch, js_name = completeStep)]
+    pub fn complete_step(&mut self, step: &Step, time: f64) -> Result<(), JsValue> {
+        // TODO: check that the start has been committed too? set it to the end of the previous step if it was somehow missed?
+
+        // TODO: if outside the upper or lower bounds, update the STN?
+        self.commit_event(step.end(), time);
+
+        Ok(())
+    }
 
     /// Get the interval between two events
     #[wasm_bindgen(catch)]

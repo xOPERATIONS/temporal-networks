@@ -146,6 +146,27 @@ describe("temporal-networks", () => {
         expected
       );
     });
+
+    it("should let you perform greedy scheduling", () => {
+      const plan = new Plan();
+      const step1 = plan.addStep("test", (duration = [1, 5]));
+      const step2 = plan.addStep("test2", (duration = [2, 9]));
+      const step3 = plan.addStep("test3", (duration = [0, 10]));
+      plan.addConstraint(step1.end, step2.start);
+      plan.addConstraint(step2.end, step3.start);
+
+      plan.completeStep(step1, 3);
+
+      const expected1 = [5, 14];
+      expect(plan.interval(plan.root, step2.start).toJSON()).to.deep.equal(
+        expected1
+      );
+
+      const expected2 = [9, 24];
+      expect(plan.interval(plan.root, step3.start).toJSON()).to.deep.equal(
+        expected2
+      );
+    });
   });
 
   describe("examples", () => {

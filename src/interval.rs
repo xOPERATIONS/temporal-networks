@@ -78,6 +78,12 @@ impl Interval {
     pub fn is_valid(&self) -> bool {
         self.lower() <= self.upper()
     }
+
+    /// Whether or not the interval has converged to a time
+    #[wasm_bindgen]
+    pub fn converged(&self) -> bool {
+        self.0 == self.1
+    }
 }
 
 impl Display for Interval {
