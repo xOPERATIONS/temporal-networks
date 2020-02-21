@@ -65,16 +65,31 @@
 				<a href="#temporal-networks" id="temporal-networks" style="color: inherit; text-decoration: none;">
 					<h1>Temporal Networks</h1>
 				</a>
-				<p>Implements Temporal Networks in Rust and compiles to WASM for use in any JS project.</p>
+				<p>Temporal Networks in JavaScript. Compiled to <a href="https://webassembly.org/">wasm</a> from <a href="https://www.rust-lang.org/">Rust</a> for use in any JavaScript project.</p>
 				<p><a href="https://xoperations.github.io/temporal-networks/js/modules/_index_d_.html">JS documentation</a> | <a href="https://xoperations.github.io/temporal-networks/rust/temporal_networks/">Rust documentation</a></p>
 				<p><a href="https://npmjs.org/package/@xoperations/temporal-networks" title="View this project on npm"><img src="https://img.shields.io/npm/v/@xoperations/temporal-networks.svg?style=flat" alt="npm version"></a></p>
 				<a href="#what-is-a-temporal-network" id="what-is-a-temporal-network" style="color: inherit; text-decoration: none;">
 					<h2>What is a Temporal Network?</h2>
 				</a>
+				<p>Temporal networks are data structures designed to simplify time math. They were created by the AI and computer science communities to automatically schedule the actions taken by robots or other intelligent systems. In short, a temporal network is a graph structure representing a timeline that can be queried for information such as &quot;how long until X occurs?&quot;, &quot;what&#39;s the latest that we can start Y?&quot;, &quot;how much margin do we have to complete Z?&quot;, and almost any other time related question you can imagine.</p>
+				<p>There are a number of formulations of temporal networks with the most common being Simple Temporal Networks (STNs). STNs allow for reasoning about actions that are occuring in series or in parallel with controllable ranges for start and end times. At the moment, this library uses STNs behind the scenes, but it is easily extensible to richer representations of temporal networks such as Simple Temporal Networks with Uncertainty (STNUs), Temporal Plan Networks (TPNs), or Qualitative State Plans (QSPs). STNUs add uncertainty, which is crucial when dealing with events outside of your control. TPNs add the notion of choice, providing a way to build schedules with mutually exclusive avenues for success (eg. letting you pick Task A over Task B). QSPs add the notion of non-time-related constraints, pulling in external requirements to ensure that it is possible to move forward in a timeline (eg. using whether or not a tool is ready at a worksite to allow a certain activity to occur).</p>
+				<p>For a lot more detail on temporal networks, see <a href="https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/STNs_for_EVAs.pdf">this walkthrough</a>. There are additional papers and lecture notes in <a href="https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/">docs/references</a>.</p>
+				<a href="#nomenclature" id="nomenclature" style="color: inherit; text-decoration: none;">
+					<h3>Nomenclature</h3>
+				</a>
 				<ul>
-					<li>See <a href="https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/STNs_for_EVAs.pdf">here</a> for a tutorial on Simple Temporal Networks, a data structure that underpins temporal inference</li>
-					<li>There are additional papers and lecture notes in <a href="https://github.com/xOPERATIONS/temporal-networks/blob/master/docs/references/">docs/references</a></li>
+					<li><strong>Plan</strong>: a collection of connected steps occuring in series or parallel representing all the actions that need to be completed</li>
+					<li><strong>Step</strong>: an action with a defined start and end</li>
+					<li><strong>Event</strong>: a specific action in the timeline. Eg. the start of a step is an event and the end of a step is a different event</li>
+					<li><strong>Interval</strong>: a [lower, upper] bounded period of time</li>
+					<li><strong>Constraint</strong>: a requirement that two events occur within an interval</li>
 				</ul>
+				<a href="#example-stn" id="example-stn" style="color: inherit; text-decoration: none;">
+					<h3>Example STN</h3>
+				</a>
+				<p>Imagine a morning routine of waking up, taking a shower, eating breakfast while reading the news, and driving to work. Here&#39;s how you would describe this routine using the nomenclature above.</p>
+				<p>The whole routine from wake up to arrival at work is the <strong>plan</strong>. The first <strong>event</strong> is waking up. Taking a shower is a <strong>step</strong> with a start event (turning on the hot water?) and an end event (toweling off). Eating breakfast and reading the news are two separate steps happening in parallel. If eating breakfast takes between 10 and 15 minutes, the <strong>interval</strong> between breakfast start and breakfast end is [10, 15]. If you want to finish reading the new within 5 minutes of finishing breakfast, there is a [0, 5] interval <strong>constraint</strong> between the end of reading the news and the end of breakfast. If driving to work takes between 25 and 35 minutes, there is a [25, 35] interval between the start event of driving and end event of driving.</p>
+				<p>STNs are flexible, so there are multiple ways of building STNs to represent this scenario depending on your interpretation of the constraints between the events.</p>
 				<a href="#end-user-installation" id="end-user-installation" style="color: inherit; text-decoration: none;">
 					<h2>End User Installation</h2>
 				</a>
@@ -82,7 +97,14 @@
 				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
 					<h2>Usage</h2>
 				</a>
-				<p>TBD</p>
+				<p>In an effort to simplify building temporal networks, this library provides high level functions that reflect the structure of extravehicular activity (EVA) timelines. Sticking to these functions guarantees sane results for most use cases with EVA timelines. However, it also exposes low-level APIs if you need to fine tune your networks.</p>
+				<p>We recommend building your STNs in the simplest possible way first, testing thoroughly to ensure that the schedules that are generated make sense, then only fine-tuning with the low-level APIs if necessary.</p>
+				<p>As always, head over to the <a href="https://xoperations.github.io/temporal-networks/js/modules/_index_d_.html">JS documentation</a> for all the details.</p>
+				<a href="#example-1-building-a-timeline-with-one-activity" id="example-1-building-a-timeline-with-one-activity" style="color: inherit; text-decoration: none;">
+					<h3>Example 1: Building a timeline with one activity</h3>
+				</a>
+				<pre><code class="language-js">
+</code></pre>
 				<a href="#development" id="development" style="color: inherit; text-decoration: none;">
 					<h2>Development</h2>
 				</a>

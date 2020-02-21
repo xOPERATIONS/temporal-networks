@@ -7,7 +7,7 @@ all: build
 
 # target: doc - create docs
 doc: build
-	cargo doc --no-deps && cp -r target/doc/* docs/rust
+	cargo doc --no-deps --lib && cp -r target/doc/* docs/rust
 	npx typedoc pkg --includeDeclarations --excludeExternals --out docs/js
 
 # target: doc.open - open docs in a web browser
