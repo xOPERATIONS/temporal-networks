@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const wasm = require("../pkg");
-const { install, Interval, Plan, Step } = wasm;
+const { install, Interval, Plan, Period } = wasm;
 
 describe("temporal-networks", () => {
   before(() => {
@@ -82,47 +82,47 @@ describe("temporal-networks", () => {
   });
 
   describe("Plan", () => {
-    it("should create a step with only an identifier", () => {
+    it("should create a period with only an identifier", () => {
       const testName = "test";
       const plan = new Plan();
-      const step = plan.addStep(testName);
+      const period = plan.addPeriod(testName);
 
-      expect(step instanceof Step).to.be.true;
-      expect(plan.getDuration(step).toJSON()).to.deep.equal([0, 0]);
-      expect(step.name).to.equal(testName);
+      expect(period instanceof Period).to.be.true;
+      expect(plan.getDuration(period).toJSON()).to.deep.equal([0, 0]);
+      expect(period.name).to.equal(testName);
     });
 
-    it("should create a step with a duration", () => {
+    it("should create a period with a duration", () => {
       const testDuration = [15, 20];
       const plan = new Plan();
-      const step = plan.addStep("test", (duration = testDuration));
-      expect(step).to.be.ok;
+      const period = plan.addPeriod("test", (duration = testDuration));
+      expect(period).to.be.ok;
 
-      const i = plan.getDuration(step);
+      const i = plan.getDuration(period);
       expect(i.toJSON()).to.deep.equal(testDuration);
     });
 
-    it("should chain steps together", () => {
+    it("should chain periods together", () => {
       const plan = new Plan();
       const testDuration = [1, 5];
-      const step = plan.addStep("test", (duration = testDuration));
-      const step2 = plan.addStep("test2", (duration = [2, 9]));
-      plan.addConstraint(step.end, step2.start);
+      const period = plan.addPeriod("test", (duration = testDuration));
+      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+      plan.addConstraint(period.end, period2.start);
 
-      expect(plan.interval(step.start, step2.start).toJSON()).to.deep.equal(
+      expect(plan.interval(period.start, period2.start).toJSON()).to.deep.equal(
         testDuration
       );
     });
 
-    it("should provide intervals between steps", () => {
+    it("should provide intervals between periods", () => {
       const plan = new Plan();
-      const step = plan.addStep("test", (duration = [1, 5]));
-      const step2 = plan.addStep("test2", (duration = [2, 9]));
-      const step3 = plan.addStep("test3", (duration = [0, 10]));
-      plan.addConstraint(step.end, step2.start);
-      plan.addConstraint(step2.end, step3.start);
+      const period = plan.addPeriod("test", (duration = [1, 5]));
+      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+      const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+      plan.addConstraint(period.end, period2.start);
+      plan.addConstraint(period2.end, period3.start);
 
-      expect(plan.interval(step.end, step3.start).toJSON()).to.deep.equal([
+      expect(plan.interval(period.end, period3.start).toJSON()).to.deep.equal([
         2,
         9
       ]);
@@ -130,41 +130,56 @@ describe("temporal-networks", () => {
 
     it("should allow access to the first event", () => {
       const plan = new Plan();
-      const step = plan.addStep("test", (duration = [1, 5]));
-      const step2 = plan.addStep("test2", (duration = [2, 9]));
-      const step3 = plan.addStep("test3", (duration = [0, 10]));
-      plan.addConstraint(step.end, step2.start);
-      plan.addConstraint(step2.end, step3.start);
+      const period = plan.addPeriod("test", (duration = [1, 5]));
+      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+      const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+      plan.addConstraint(period.end, period2.start);
+      plan.addConstraint(period2.end, period3.start);
 
       expect(plan.root).to.equal(
-        step.start,
-        "the start of step is the first event in the plan"
+        period.start,
+        "the start of period is the first event in the plan"
       );
 
       const expected = [3, 14];
-      expect(plan.interval(plan.root, step3.start).toJSON()).to.deep.equal(
+      expect(plan.interval(plan.root, period3.start).toJSON()).to.deep.equal(
         expected
       );
     });
 
     it("should let you perform greedy scheduling", () => {
       const plan = new Plan();
-      const step1 = plan.addStep("test", (duration = [1, 5]));
-      const step2 = plan.addStep("test2", (duration = [2, 9]));
-      const step3 = plan.addStep("test3", (duration = [0, 10]));
-      plan.addConstraint(step1.end, step2.start);
-      plan.addConstraint(step2.end, step3.start);
+      const period1 = plan.addPeriod("test", (duration = [1, 5]));
+      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+      const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+      plan.addConstraint(period1.end, period2.start);
+      plan.addConstraint(period2.end, period3.start);
 
-      plan.commitEvent(step1.start, 0);
-      plan.commitEvent(step1.end, 3);
+      plan.commitEvent(period1.start, 0);
+      plan.commitEvent(period1.end, 3);
 
       const expected1 = [5, 12];
-      expect(plan.window(step2.end).toJSON()).to.deep.equal(expected1);
+      expect(plan.window(period2.end).toJSON()).to.deep.equal(expected1);
 
-      // const expected2 = [9, 24];
-      // expect(plan.interval(plan.root, step3.start).toJSON()).to.deep.equal(
-      //   expected2
-      // );
+      plan.commitEvent(period2.start, 3);
+      plan.commitEvent(period2.end, 10);
+
+      const expected2 = [10, 20];
+      expect(plan.window(period3.end).toJSON()).to.deep.equal(expected2);
+    });
+
+    it("doesn't barf if you miss the execution window", () => {
+      const plan = new Plan();
+      const period1 = plan.addPeriod("test", (duration = [1, 5]));
+      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+      plan.addConstraint(period1.end, period2.start);
+
+      plan.commitEvent(period1.start, 0);
+      plan.commitEvent(period1.end, 6);
+
+      // still tries to keep the start in the right window
+      const expected1 = [8, 14];
+      expect(plan.window(period2.end).toJSON()).to.deep.equal(expected1);
     });
   });
 
@@ -173,8 +188,8 @@ describe("temporal-networks", () => {
       const buildExample = () => {
         const plan = new Plan();
         const X0 = plan.createEvent("X0");
-        const L = plan.addStep("L", (duration = [30, 40]));
-        const S = plan.addStep("S", (duration = [40, 50]));
+        const L = plan.addPeriod("L", (duration = [30, 40]));
+        const S = plan.addPeriod("S", (duration = [40, 50]));
         plan.addConstraint(X0, L.start, (interval = [10, 20]));
         plan.addConstraint(X0, S.end, (interval = [60, 70]));
         plan.addConstraint(S.start, L.end, (interval = [10, 20]));
@@ -242,7 +257,7 @@ describe("temporal-networks", () => {
       expect(plan.interval(A, D).toJSON()).to.deep.equal([2, 11]);
     });
 
-    it("can find the first step", () => {
+    it("can find the first period", () => {
       const { plan, A } = buildExample();
       expect(plan.root).to.equal(A);
     });
@@ -257,11 +272,11 @@ describe("temporal-networks", () => {
 
       const plan = new Plan();
       // make up an 8 hour lim cons
-      const limCons = plan.addStep("LIM CONS", interval([0, 480]));
+      const limCons = plan.addPeriod("LIM CONS", interval([0, 480]));
 
       // high level activities
-      const egress = plan.addStep("EGRESS/SETUP", interval([40, 50]));
-      const misse7 = plan.addStep("MISSE7", interval([55, 65]));
+      const egress = plan.addPeriod("EGRESS/SETUP", interval([40, 50]));
+      const misse7 = plan.addPeriod("MISSE7", interval([55, 65]));
 
       // string together the activities in series
       plan.addConstraint(limCons.start, egress.start);
@@ -282,15 +297,15 @@ describe("temporal-networks", () => {
       // define the tasks for each EV within each activity
 
       // EGRESS/SETUP tasks
-      const ev1Egress = plan.addStep(
+      const ev1Egress = plan.addPeriod(
         "EV1 performing EGRESS",
         interval([10, 20])
       );
-      const ev1Setup = plan.addStep(
+      const ev1Setup = plan.addPeriod(
         "EV1 performing SETUP",
         interval([0, Number.MAX_VALUE])
       );
-      const ev2Egress = plan.addStep(
+      const ev2Egress = plan.addPeriod(
         "EV2 performing EGRESS/SETUP",
         interval([40, 50])
       );
@@ -307,11 +322,11 @@ describe("temporal-networks", () => {
       plan.addConstraint(egress.end, ev2Egress.end);
 
       // MISSE7 tasks
-      const ev1MISSE7 = plan.addStep(
+      const ev1MISSE7 = plan.addPeriod(
         "EV1 performing MISSE 7 RETRIEVE",
         interval([55, 65])
       );
-      const ev2MISSE7 = plan.addStep(
+      const ev2MISSE7 = plan.addPeriod(
         "EV2 performing MISSE 7 RETRIEVE",
         interval([55, 65])
       );
@@ -321,23 +336,23 @@ describe("temporal-networks", () => {
       plan.addConstraint(ev1MISSE7.end, misse7.end);
       plan.addConstraint(ev2MISSE7.end, misse7.end);
 
-      // const ev1MISSE8 = plan.addStep(
+      // const ev1MISSE8 = plan.addPeriod(
       //   "EV1 performing MISSE 8 Install",
       //   interval([40, 40])
       // );
-      // const ev2CETA = plan.addStep(
+      // const ev2CETA = plan.addPeriod(
       //   "EV2 performing S3 CETA Light Install",
       //   interval([25, 25])
       // );
-      // const ev2SARJ = plan.addStep(
+      // const ev2SARJ = plan.addPeriod(
       //   "EV2 performing Stbd SARJ Cover 7 Install",
       //   interval([25, 25])
       // );
-      // const ev1P3P4NH3Install = plan.addStep(
+      // const ev1P3P4NH3Install = plan.addPeriod(
       //   "EV1 performing P3/P4 NH3 Jumper Install",
       //   interval([35, 35])
       // );
-      // const ev2P3P4NH3Install = plan.addStep(
+      // const ev2P3P4NH3Install = plan.addPeriod(
       //   "EV2 performing P3/P4 NH3 Jumper Install",
       //   interval([25, 25])
       // );
@@ -355,19 +370,19 @@ describe("temporal-networks", () => {
       //   interval([10, 10])
       // );
 
-      // const ev1P5P6NH3Vent = plan.addStep(
+      // const ev1P5P6NH3Vent = plan.addPeriod(
       //   "EV1 performing P5/P6 NH3 Jumper Install / N2 Vent",
       //   interval([35, 35])
       // );
-      // const ev2P3P4NH3TempStow = plan.addStep(
+      // const ev2P3P4NH3TempStow = plan.addPeriod(
       //   "EV2 performing P3/P4 NH3 Jumper Temp Stow",
       //   interval([35, 35])
       // );
-      // const ev1EWC = plan.addStep(
+      // const ev1EWC = plan.addPeriod(
       //   "EV1 performing EWC Antenna Install",
       //   interval([140, 140])
       // );
-      // const ev2EWC = plan.addStep(
+      // const ev2EWC = plan.addPeriod(
       //   "EV2 performing EWC Antenna Install",
       //   interval([165, 165])
       // );
@@ -380,16 +395,16 @@ describe("temporal-networks", () => {
       // // sync edge
       // plan.addConstraint(ev1EWC.end, ev2EWC.end, interval([10, 10]));
 
-      // const ev1VTEB = plan.addStep(
+      // const ev1VTEB = plan.addPeriod(
       //   "EV1 performing VTEB Cleanup",
       //   interval([25, 25])
       // );
 
-      // const ev1Ingress = plan.addStep(
+      // const ev1Ingress = plan.addPeriod(
       //   "EV1 performing Cleanup / Ingress",
       //   interval([30, 30])
       // );
-      // const ev2Ingress = plan.addStep(
+      // const ev2Ingress = plan.addPeriod(
       //   "EV2 performing Cleanup / Ingress",
       //   interval([30, 30])
       // );
