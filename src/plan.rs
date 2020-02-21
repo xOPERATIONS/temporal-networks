@@ -2,11 +2,11 @@
 //! Defines an API designed to be exported to WASM that can perform time math without requiring the user to understand the underlying data structures or algorithms.
 //!
 //! ## Nomenclature (and some types)
-//! * **`Plan`**: a set of temporal constraints describing a set of actions to occur. Our implementation of `Plan` can currently handle actions that occur in series or parallel (or any mix thereof)
+//! * **`Plan`**: a set of temporal constraints describing a set of Periods to occur. Our implementation of `Plan` can currently handle Periods that occur in series or parallel (or any mix thereof)
 //! * **Event**: a moment in time in the `Plan`
-//! * **`Step`**: A pair of start and end `Event`s
+//! * **`Period`**: A pair of start and end `Event`s
 //! * **`Interval`**: A span of time represented in [lower, upper] range
-//! * **Duration**: An interval in the context of a `Step`, ie, the interval between the start and end events. In English, a Step with a [lower, upper] duration is "an action that will take between lower and upper units of time to complete".
+//! * **Duration**: An interval in the context of a `Period`, ie, the interval between the start and end events. In English, an Period with a [lower, upper] duration is "an Period that will take between lower and upper units of time to complete".
 
 use petgraph::graphmap::DiGraphMap;
 use std::collections::BTreeMap;
@@ -21,33 +21,33 @@ use super::interval::Interval;
 /// An ID representing an event in the plan
 type EventID = i32;
 
-/// A Step represents a logical action that occurs over a period of time. It implicitly has start and end events, which are used by `Plan`
+/// An Period represents a logical action that occurs over a period of time. It implicitly has start and end events, which are used by `Plan`
 #[wasm_bindgen]
 #[derive(Clone, Debug, Default)]
-pub struct Step(pub EventID, pub EventID, String);
+pub struct Period(pub EventID, pub EventID, String);
 
 #[wasm_bindgen]
-impl Step {
-    /// Represents the unique identifier of the step
+impl Period {
+    /// Represents the unique identifier of the Period
     #[wasm_bindgen(getter)]
     pub fn name(&self) -> String {
         self.2.clone()
     }
 
-    /// Represents the start of the step
+    /// Represents the start of the Period
     #[wasm_bindgen(getter)]
     pub fn start(&self) -> EventID {
         self.0
     }
 
-    /// Represents the end of the step
+    /// Represents the end of the Period
     #[wasm_bindgen(getter)]
     pub fn end(&self) -> EventID {
         self.1
     }
 }
 
-impl fmt::Display for Step {
+impl fmt::Display for Period {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.2)
     }
@@ -57,7 +57,7 @@ impl fmt::Display for Step {
 ///
 /// # Example
 ///
-/// Creating a Plan and adding Steps with constraints in Rust
+/// Creating a Plan and adding Periods with constraints in Rust
 ///
 /// ```
 /// use temporal_networks::plan::Plan;
@@ -66,18 +66,18 @@ impl fmt::Display for Step {
 /// // create a plan
 /// let mut plan = Plan::new();
 ///
-/// // add a step to the plan that takes between 6 and 17 time units to complete
-/// let step1 = plan.add_step("example".to_string(), Some(vec![6., 17.]));
+/// // add an Period to the plan that takes between 6 and 17 time units to complete
+/// let period1 = plan.add_period("example".to_string(), Some(vec![6., 17.]));
 ///
-/// // add another step and a constraint that the second occurs after the first
-/// let step2 = plan.add_step("another example".to_string(), Some(vec![8., 29.]));
-/// plan.add_constraint(step1.end(), step2.start(), None);
+/// // add another Period and a constraint that the second occurs after the first
+/// let period2 = plan.add_period("another example".to_string(), Some(vec![8., 29.]));
+/// plan.add_constraint(period1.end(), period2.start(), None);
 ///
-/// // find the [lower, upper] interval between the start of the plan and the start of the second step
+/// // find the [lower, upper] interval between the start of the plan and the start of the second Period
 /// let root = plan.root().unwrap();
-/// let result = plan.interval(root, step2.start()).unwrap();
+/// let result = plan.interval(root, period2.start()).unwrap();
 ///
-/// // you may notice the interval between the start of the plan and the second step is just the duration of the first step!
+/// // you may notice the interval between the start of the plan and the second Period is just the duration of the first Period!
 /// assert_eq!(result, Interval::new(6., 17.));
 /// ```
 #[wasm_bindgen]
@@ -91,7 +91,7 @@ pub struct Plan {
     execution_windows: BTreeMap<EventID, Interval>,
     /// User-provided inputs about event completion. Also referenced to a timeframe where plan.root() is t=0
     committments: BTreeMap<EventID, f64>,
-    /// housekeeping to keep track of step identifiers. DiGraphMap can't work with String NodeTraits
+    /// housekeeping to keep track of Period identifiers. DiGraphMap can't work with String NodeTraits
     id_to_indices: BTreeMap<String, EventID>,
     /// Whether or not changes have been made since the last compile
     dirty: bool,
@@ -116,19 +116,17 @@ impl Plan {
         };
 
         // all incoming edges should be <= 0 for the first node
-        let ret = self.dispatchable.nodes().find(|s| {
+        self.dispatchable.nodes().find(|s| {
             self.dispatchable
                 .neighbors_directed(*s, petgraph::Incoming)
                 .all(|t| match self.dispatchable.edge_weight(t, *s) {
                     Some(w) => *w <= 0.,
                     None => false,
                 })
-        });
-        // console::log_1(&JsValue::from_serde(&ret).unwrap());
-        ret
+        })
     }
 
-    /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addStep`, use `addStep` instead
+    /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addPeriod`, use `addPeriod` instead
     #[wasm_bindgen(js_name = createEvent)]
     pub fn create_event(&mut self, identifier: String) -> EventID {
         let event_id = self.id_to_indices.len() as i32;
@@ -141,34 +139,34 @@ impl Plan {
         n
     }
 
-    /// Build a step but don't add it to the graph
-    fn new_step(&mut self, identifier: String) -> Step {
+    /// Build an Period but don't add it to the graph
+    fn new_period(&mut self, identifier: String) -> Period {
         let start_identifier = identifier.clone() + "__START";
         let end_identifier = identifier.clone() + "__END";
         let start_id = self.create_event(start_identifier);
         let end_id = self.create_event(end_identifier);
-        Step(start_id, end_id, identifier)
+        Period(start_id, end_id, identifier)
     }
 
-    /// Create a new step and add it to this plan. The identifier is recommended but not required to be unique (being unique may become a requirement in the future)
-    #[wasm_bindgen(catch, js_name = addStep)]
-    pub fn add_step(&mut self, identifier: String, duration: Option<Vec<f64>>) -> Step {
+    /// Create a new Period and add it to this plan. The identifier is recommended but not required to be unique (being unique may become a requirement in the future)
+    #[wasm_bindgen(catch, js_name = addPeriod)]
+    pub fn add_period(&mut self, identifier: String, duration: Option<Vec<f64>>) -> Period {
         let d = duration.unwrap_or(vec![0., 0.]);
         let i = Interval::from_vec(d);
 
-        // create the step and add edges for its interval
+        // create the Period and add edges for its interval
         // make it a distance graph so the lower bound is negative
-        let step = self.new_step(identifier);
-        self.stn.add_edge(step.0, step.1, i.upper());
-        self.stn.add_edge(step.1, step.0, -i.lower());
+        let period = self.new_period(identifier);
+        self.stn.add_edge(period.0, period.1, i.upper());
+        self.stn.add_edge(period.1, period.0, -i.lower());
 
         self.dirty = true;
-        step
+        period
     }
 
-    /// Get the controllable duration of a step
+    /// Get the controllable duration of an Period
     #[wasm_bindgen(js_name = getDuration)]
-    pub fn get_duration(&self, s: &Step) -> Interval {
+    pub fn get_duration(&self, s: &Period) -> Interval {
         let lower = self.stn.edge_weight(s.1, s.0).unwrap_or(&0.);
         let upper = self.stn.edge_weight(s.0, s.1).unwrap_or(&0.);
         Interval::new(-*lower, *upper)
@@ -236,7 +234,7 @@ impl Plan {
         Ok(())
     }
 
-    /// Low-level API for marking an event complete. Advanced use only. If you can't explain why you should use this over `completeStep`, use `completeStep` instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the plan started
+    /// Low-level API for marking an event complete. Advanced use only. If you can't explain why you should use this over `completePeriod`, use `completePeriod` instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the plan started
     #[wasm_bindgen(catch, js_name = commitEvent)]
     pub fn commit_event(&mut self, event: EventID, time: f64) -> Result<(), JsValue> {
         self.committments.insert(event, time);
@@ -247,13 +245,11 @@ impl Plan {
         Ok(())
     }
 
-    /// Mark a step complete to update the schedule to following steps. The time should be the elapsed time since the plan started (in the same units as well)
-    #[wasm_bindgen(catch, js_name = completeStep)]
-    pub fn complete_step(&mut self, step: &Step, time: f64) -> Result<(), JsValue> {
-        // TODO: check that the start has been committed too? set it to the end of the previous step if it was somehow missed?
-
+    /// Mark an Period complete to update the schedule to following Periods. The time should be the elapsed time since the plan started (in the same units as well)
+    #[wasm_bindgen(catch, js_name = completePeriod)]
+    pub fn complete_period(&mut self, period: &Period, time: f64) -> Result<(), JsValue> {
         // TODO: if outside the upper or lower bounds, update the STN?
-        self.commit_event(step.end(), time)?;
+        self.commit_event(period.end(), time)?;
 
         Ok(())
     }
@@ -293,12 +289,7 @@ impl Plan {
         };
 
         // avoid returning -0
-        let lower: f64;
-        if *l == 0. {
-            lower = -0.;
-        } else {
-            lower = *l;
-        }
+        let lower = if *l == 0. { -0. } else { *l };
 
         Ok(Interval::new(-lower, *upper))
     }
@@ -309,13 +300,13 @@ impl Plan {
         // ensure source and target already exist
         if !self.stn.contains_node(source) {
             return Err(JsValue::from_str(&format!(
-                "Source {} is not already in the plan. Have you added it with `addStep`?",
+                "Source {} is not already in the plan. Have you added it with `addPeriod`?",
                 source
             )));
         }
         if !self.stn.contains_node(target) {
             return Err(JsValue::from_str(&format!(
-                "Target {} is not already in the plan. Have you added it with `addStep`?",
+                "Target {} is not already in the plan. Have you added it with `addPeriod`?",
                 target
             )));
         }
@@ -333,8 +324,9 @@ impl Plan {
         Ok(JsValue::from_f64(*t))
     }
 
-    // TODO: take StepID, not step
-    pub fn update_duration() {}
+    pub fn update_interval(&mut self, _source: EventID, _target: EventID, _interval: Interval) {
+        //
+    }
 
     /// Add a constraint between the start or end of two events. Errs if either source or target is not already in the plan. Defaults to a [0, 0] interval between events
     #[wasm_bindgen(js_name = addConstraint)]
@@ -347,13 +339,13 @@ impl Plan {
         // ensure source and target already exist
         if !self.stn.contains_node(source) {
             return Err(JsValue::from_str(&format!(
-                "Source {} is not already in the plan. Have you added it with `addStep`?",
+                "Source {} is not already in the plan. Have you added it with `addPeriod`?",
                 source
             )));
         }
         if !self.stn.contains_node(target) {
             return Err(JsValue::from_str(&format!(
-                "Target {} is not already in the plan. Have you added it with `addStep`?",
+                "Target {} is not already in the plan. Have you added it with `addPeriod`?",
                 target
             )));
         }

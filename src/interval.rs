@@ -82,7 +82,7 @@ impl Interval {
     /// Whether or not the interval has converged to a time
     #[wasm_bindgen]
     pub fn converged(&self) -> bool {
-        self.0 == self.1
+        (self.0 - self.1).abs() < 0.001
     }
 }
 
