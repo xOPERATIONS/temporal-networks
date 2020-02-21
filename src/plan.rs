@@ -14,7 +14,6 @@ use std::fmt;
 use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
-use web_sys::console;
 
 use super::algorithms::floyd_warshall;
 use super::interval::Interval;
@@ -90,6 +89,8 @@ pub struct Plan {
     dispatchable: DiGraphMap<EventID, f64>,
     /// Execution windows when each event can be scheduled. Referenced to a timeframe where the plan.root() is t=0
     execution_windows: BTreeMap<EventID, Interval>,
+    /// User-provided inputs about event completion. Also referenced to a timeframe where plan.root() is t=0
+    committments: BTreeMap<EventID, f64>,
     /// housekeeping to keep track of step identifiers. DiGraphMap can't work with String NodeTraits
     id_to_indices: BTreeMap<String, EventID>,
     /// Whether or not changes have been made since the last compile
@@ -130,9 +131,11 @@ impl Plan {
     /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addStep`, use `addStep` instead
     #[wasm_bindgen(js_name = createEvent)]
     pub fn create_event(&mut self, identifier: String) -> EventID {
-        let id = self.id_to_indices.len() as i32;
-        self.id_to_indices.insert(identifier, id);
-        let n = self.stn.add_node(id);
+        let event_id = self.id_to_indices.len() as i32;
+        self.id_to_indices.insert(identifier, event_id);
+        self.execution_windows
+            .insert(event_id, Interval(-std::f64::MAX, std::f64::MAX));
+        let n = self.stn.add_node(event_id);
 
         self.dirty = true;
         n
@@ -184,9 +187,6 @@ impl Plan {
             Err(e) => return Err(JsValue::from_str(&e)),
         };
 
-        // let s = format!("{:?}", mappings);
-        // console::log_1(&JsValue::from(&s));
-
         // reset the dispatchable graph
         self.dispatchable = DiGraphMap::new();
 
@@ -194,8 +194,15 @@ impl Plan {
         for ((source, target), weight) in mappings.iter() {
             self.dispatchable.add_edge(*source, *target, *weight);
         }
-
+        // mark not-dirty as soon as possible so we can use commit_event below, which calls this function, without recursing to this point
         self.dirty = false;
+
+        // update execution windows with known committments
+        let c = self.committments.clone();
+        for (executed_event, time) in c.iter() {
+            self.commit_event(*executed_event, *time)?;
+        }
+
         Ok(())
     }
 
@@ -205,23 +212,25 @@ impl Plan {
 
         let d = self.dispatchable.clone();
         for neighbor in d.neighbors(event) {
-            let mut neighbor_window = match self.execution_windows.get(&neighbor) {
+            if self.committments.contains_key(&neighbor) {
+                // neighbor has already been scheduled
+                continue;
+            }
+
+            let time_to_neighbor = self.interval(event, neighbor)?;
+            let neighbor_window = match self.execution_windows.get(&neighbor) {
                 Some(i) => i,
                 None => return Err(JsValue::from_str(&format!("no such event {}", neighbor))),
             };
-            // check that the execution window hasn't converged to a [same, same] interval, which would indicate it has already been scheduled
-            if neighbor_window.converged() {
-                continue;
-            }
             let event_window = match self.execution_windows.get(&event) {
                 Some(i) => i,
                 None => return Err(JsValue::from_str(&format!("no such event {}", event))),
             };
 
-            let time_to_neighbor = self.interval(event, neighbor)?;
-
-            neighbor_window = neighbor_window & (event_window + time_to_neighbor);
-            self.execution_windows.insert(*neighbor, neighbor_window);
+            // update neighbor execution windows
+            // bounds_i = bounds_i ^ (v + time_event_to_neighbor)
+            let new_neighbor_window = *neighbor_window & (*event_window + time_to_neighbor);
+            self.execution_windows.insert(neighbor, new_neighbor_window);
         }
 
         Ok(())
@@ -230,6 +239,7 @@ impl Plan {
     /// Low-level API for marking an event complete. Advanced use only. If you can't explain why you should use this over `completeStep`, use `completeStep` instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the plan started
     #[wasm_bindgen(catch, js_name = commitEvent)]
     pub fn commit_event(&mut self, event: EventID, time: f64) -> Result<(), JsValue> {
+        self.committments.insert(event, time);
         self.execution_windows
             .insert(event, Interval::new(time, time));
         self.update_schedule(event)?;
@@ -243,9 +253,18 @@ impl Plan {
         // TODO: check that the start has been committed too? set it to the end of the previous step if it was somehow missed?
 
         // TODO: if outside the upper or lower bounds, update the STN?
-        self.commit_event(step.end(), time);
+        self.commit_event(step.end(), time)?;
 
         Ok(())
+    }
+
+    /// Get the execution window of an Event
+    #[wasm_bindgen(catch)]
+    pub fn window(&self, event: EventID) -> Result<Interval, JsValue> {
+        match self.execution_windows.get(&event) {
+            Some(i) => Ok(*i),
+            None => Err(JsValue::from(&format!("could not find event {}", event))),
+        }
     }
 
     /// Get the interval between two events

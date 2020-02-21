@@ -155,17 +155,16 @@ describe("temporal-networks", () => {
       plan.addConstraint(step1.end, step2.start);
       plan.addConstraint(step2.end, step3.start);
 
-      plan.completeStep(step1, 3);
+      plan.commitEvent(step1.start, 0);
+      plan.commitEvent(step1.end, 3);
 
-      const expected1 = [5, 14];
-      expect(plan.interval(plan.root, step2.start).toJSON()).to.deep.equal(
-        expected1
-      );
+      const expected1 = [5, 12];
+      expect(plan.window(step2.end).toJSON()).to.deep.equal(expected1);
 
-      const expected2 = [9, 24];
-      expect(plan.interval(plan.root, step3.start).toJSON()).to.deep.equal(
-        expected2
-      );
+      // const expected2 = [9, 24];
+      // expect(plan.interval(plan.root, step3.start).toJSON()).to.deep.equal(
+      //   expected2
+      // );
     });
   });
 
