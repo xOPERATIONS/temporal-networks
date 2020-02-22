@@ -19,7 +19,7 @@ use super::algorithms::floyd_warshall;
 use super::interval::Interval;
 
 /// An ID representing an event in the plan
-type EventID = i32;
+pub type EventID = i32;
 
 /// An Period represents a logical action that occurs over a period of time. It implicitly has start and end events, which are used by `Plan`
 #[wasm_bindgen]

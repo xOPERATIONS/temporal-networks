@@ -1,9 +1,13 @@
-.PHONY: all doc test build install publish help
+.PHONY: all build doc test install publish help
 
 SHELL = /bin/sh
 
 # target: all - build the project
 all: build
+
+# target: build - build a JS agnostic package
+build:
+	npx wasm-pack build --scope xoperations --target nodejs --out-name index
 
 # target: doc - create docs
 doc: build
@@ -42,10 +46,6 @@ test.js: build
 
 # target: test - test Rust, wasm, and JS
 test: test.rs test.js
-
-# target: build - build a JS agnostic package
-build:
-	npx wasm-pack build --scope xoperations --target nodejs --out-name index
 
 # target: publish - publish to NPM. Requires being logged into NPM
 publish: build

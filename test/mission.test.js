@@ -50,4 +50,14 @@ describe("EVA high level API", () => {
     const step1 = createStep(mission, actor, "EGRESS/SETUP");
     const substep = createSubstep(mission, step1, "Activate ORU");
   });
+
+  it("should put steps by different actors in parallel", () => {
+    const mission = createMission();
+    const ev1 = createActor(mission, "EV1");
+    const ev2 = createActor(mission, "EV2");
+
+    const egress = createSync(mission, "EGRESS/SETUP");
+    createStep(egress, ev1, "DON HELMET");
+    createStep(egress, ev2, "DON HELMET");
+  });
 });

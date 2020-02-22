@@ -1,6 +1,6 @@
 //! EVA-specific high-level functions
 
-use super::plan::{Period, Plan};
+use super::plan::{EventID, Period, Plan};
 use std::collections::BTreeMap;
 use std::string::String;
 use wasm_bindgen::prelude::*;
@@ -15,14 +15,46 @@ export const LIM_CONS = "LIM CONS";
 "#;
 const LIM_CONS: &'static str = "LIM CONS";
 
-struct Mission {
-    pub periods_by_actor: BTreeMap<String, Vec<Period>>,
+trait Branchable {
+    fn start_event(&self) -> EventID;
 }
 
-pub fn create_eva() -> Plan {
+#[wasm_bindgen]
+pub struct Mission {
+    periods_by_actor: BTreeMap<String, Vec<Period>>,
+}
+
+// impl Branchable for Mission {
+//     fn start_event(&self) -> EventID {
+//         EventID(0)
+//     }
+// }
+
+#[wasm_bindgen]
+pub struct Sync {}
+
+// impl Branchable for Sync {
+//     fn start_event(&self) -> EventID {
+//         EventID(0)
+//     }
+// }
+
+/// Create a mission
+#[wasm_bindgen(js_name = createMission)]
+pub fn create_mission() -> Plan {
     let mut p = Plan::new();
-    let limCons = p.add_period(String::from(LIM_CONS), Some(vec![0., std::f64::MAX]));
+    p.add_period(String::from(LIM_CONS), Some(vec![0., std::f64::MAX]));
     p
+}
+
+// /// Create a new step
+// #[wasm_bindgen(js_name = createStep)]
+// pub fn create_step<T: Branchable>(t: T) {}
+
+/// Get the available actors in a mission
+pub fn actors(mission: &Mission) -> JsValue {
+    let actors: Vec<&String> = mission.periods_by_actor.keys().collect();
+    JsValue::from_serde(&actors).unwrap()
 }
 
 pub fn update_limiting() {}
@@ -43,7 +75,7 @@ pub fn concat_steps() {}
 pub fn finish_step() {}
 
 // https://github.com/serde-rs/json/issues/456
-// maybe dump to the d3.js format of nodes and edges?
+// maybe dump graph to the d3.js format of nodes and edges?
 pub fn d3_dump() {}
 
 pub fn step_stats() {
