@@ -1,238 +1,228 @@
 const { expect } = require("chai");
-const wasm = require("../pkg");
-const { install, Interval, Plan, Period } = wasm;
+const { install, Interval, Plan, Period } = require("../pkg");
 
-describe("temporal-networks", () => {
-  before(() => {
-    // not required but useful for debugging
-    install();
+describe("Interval", () => {
+  before(install);
+
+  it("can be instantiated", () => {
+    const i = new Interval(0, 0);
+    expect(i).to.be.ok;
   });
 
-  it("should have importable WASM", () => {
-    expect(wasm).to.be.ok;
+  it("can be indexed", () => {
+    const lower = 1;
+    const upper = 20.1;
+    const i = new Interval(lower, upper);
+    expect(i[0]).to.equal(lower);
+    expect(i[1]).to.equal(upper);
   });
 
-  describe("Interval", () => {
-    it("can be instantiated", () => {
-      const i = new Interval(0, 0);
-      expect(i).to.be.ok;
-    });
-
-    it("can be indexed", () => {
-      const lower = 1;
-      const upper = 20.1;
-      const i = new Interval(lower, upper);
-      expect(i[0]).to.equal(lower);
-      expect(i[1]).to.equal(upper);
-    });
-
-    it("can be compared for contains", () => {
-      const i = new Interval(1, 9);
-      expect(i.contains(4)).to.be.true;
-      expect(i.contains(10)).to.be.false;
-    });
-
-    it("has an upper and lower", () => {
-      const lower = 10.1;
-      const upper = 15.5;
-      const i = new Interval(lower, upper);
-      expect(i.lower()).to.equal(lower);
-      expect(i.upper()).to.equal(upper);
-    });
-
-    it("can be checked for validity", () => {
-      const i = new Interval(9, 7);
-      expect(i.isValid()).to.be.false;
-    });
-
-    it("can handle infinity as Number.MAX_VALUE", () => {
-      let i = new Interval(0, Number.MAX_VALUE);
-      expect(i.isValid()).to.be.true;
-
-      i = new Interval(0, Number.MAX_VALUE);
-      expect(i.toJSON()).to.deep.equal([0, Number.MAX_VALUE]);
-      expect(i.contains(-1)).to.be.false;
-
-      // check 10 random positive floats against [0, inf]
-      for (let j = 0; j < 10; j++) {
-        const anyPossiblePosF64 = Math.random() * Number.MAX_VALUE;
-        expect(i.contains(anyPossiblePosF64)).to.be.true;
-      }
-
-      i = new Interval(-Number.MAX_VALUE, 0);
-      expect(i.isValid()).to.be.true;
-      expect(i.contains(1)).to.be.false;
-
-      // check 10 random negative floats against [-inf, 0]
-      for (let j = 0; j < 10; j++) {
-        const anyPossibleNegF64 = -Math.random() * Number.MAX_VALUE;
-        expect(i.contains(anyPossibleNegF64)).to.be.true;
-      }
-
-      i = new Interval(-Number.MAX_VALUE, Number.MAX_VALUE);
-      expect(i.isValid()).to.be.true;
-
-      // check 10 random floats against [-inf, inf]
-      for (let j = 0; j < 10; j++) {
-        const anyPossibleF64 =
-          Math.random() * Number.MAX_VALUE * (Math.random() > 0.5 ? 1 : -1);
-        expect(i.contains(anyPossibleF64)).to.be.true;
-      }
-    });
+  it("can be compared for contains", () => {
+    const i = new Interval(1, 9);
+    expect(i.contains(4)).to.be.true;
+    expect(i.contains(10)).to.be.false;
   });
 
-  describe("Plan", () => {
-    it("should create a period with only an identifier", () => {
-      const testName = "test";
+  it("has an upper and lower", () => {
+    const lower = 10.1;
+    const upper = 15.5;
+    const i = new Interval(lower, upper);
+    expect(i.lower()).to.equal(lower);
+    expect(i.upper()).to.equal(upper);
+  });
+
+  it("can be checked for validity", () => {
+    const i = new Interval(9, 7);
+    expect(i.isValid()).to.be.false;
+  });
+
+  it("can handle infinity as Number.MAX_VALUE", () => {
+    let i = new Interval(0, Number.MAX_VALUE);
+    expect(i.isValid()).to.be.true;
+
+    i = new Interval(0, Number.MAX_VALUE);
+    expect(i.toJSON()).to.deep.equal([0, Number.MAX_VALUE]);
+    expect(i.contains(-1)).to.be.false;
+
+    // check 10 random positive floats against [0, inf]
+    for (let j = 0; j < 10; j++) {
+      const anyPossiblePosF64 = Math.random() * Number.MAX_VALUE;
+      expect(i.contains(anyPossiblePosF64)).to.be.true;
+    }
+
+    i = new Interval(-Number.MAX_VALUE, 0);
+    expect(i.isValid()).to.be.true;
+    expect(i.contains(1)).to.be.false;
+
+    // check 10 random negative floats against [-inf, 0]
+    for (let j = 0; j < 10; j++) {
+      const anyPossibleNegF64 = -Math.random() * Number.MAX_VALUE;
+      expect(i.contains(anyPossibleNegF64)).to.be.true;
+    }
+
+    i = new Interval(-Number.MAX_VALUE, Number.MAX_VALUE);
+    expect(i.isValid()).to.be.true;
+
+    // check 10 random floats against [-inf, inf]
+    for (let j = 0; j < 10; j++) {
+      const anyPossibleF64 =
+        Math.random() * Number.MAX_VALUE * (Math.random() > 0.5 ? 1 : -1);
+      expect(i.contains(anyPossibleF64)).to.be.true;
+    }
+  });
+});
+
+describe("Plan", () => {
+  before(install);
+
+  it("should create a period with only an identifier", () => {
+    const testName = "test";
+    const plan = new Plan();
+    const period = plan.addPeriod(testName);
+
+    expect(period instanceof Period).to.be.true;
+    expect(plan.getDuration(period).toJSON()).to.deep.equal([0, 0]);
+    expect(period.name).to.equal(testName);
+  });
+
+  it("should create a period with a duration", () => {
+    const testDuration = [15, 20];
+    const plan = new Plan();
+    const period = plan.addPeriod("test", (duration = testDuration));
+    expect(period).to.be.ok;
+
+    const i = plan.getDuration(period);
+    expect(i.toJSON()).to.deep.equal(testDuration);
+  });
+
+  it("should chain periods together", () => {
+    const plan = new Plan();
+    const testDuration = [1, 5];
+    const period = plan.addPeriod("test", (duration = testDuration));
+    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+    plan.addConstraint(period.end, period2.start);
+
+    expect(plan.interval(period.start, period2.start).toJSON()).to.deep.equal(
+      testDuration
+    );
+  });
+
+  it("should provide intervals between periods", () => {
+    const plan = new Plan();
+    const period = plan.addPeriod("test", (duration = [1, 5]));
+    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+    const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+    plan.addConstraint(period.end, period2.start);
+    plan.addConstraint(period2.end, period3.start);
+
+    expect(plan.interval(period.end, period3.start).toJSON()).to.deep.equal([
+      2,
+      9
+    ]);
+  });
+
+  it("should allow access to the first event", () => {
+    const plan = new Plan();
+    const period = plan.addPeriod("test", (duration = [1, 5]));
+    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+    const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+    plan.addConstraint(period.end, period2.start);
+    plan.addConstraint(period2.end, period3.start);
+
+    expect(plan.root).to.equal(
+      period.start,
+      "the start of period is the first event in the plan"
+    );
+
+    const expected = [3, 14];
+    expect(plan.interval(plan.root, period3.start).toJSON()).to.deep.equal(
+      expected
+    );
+  });
+
+  it("should let you perform greedy scheduling", () => {
+    const plan = new Plan();
+    const period1 = plan.addPeriod("test", (duration = [1, 5]));
+    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+    const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+    plan.addConstraint(period1.end, period2.start);
+    plan.addConstraint(period2.end, period3.start);
+
+    plan.commitEvent(period1.start, 0);
+    plan.commitEvent(period1.end, 3);
+
+    const expected1 = [5, 12];
+    expect(plan.window(period2.end).toJSON()).to.deep.equal(expected1);
+
+    plan.commitEvent(period2.start, 3);
+    plan.commitEvent(period2.end, 10);
+
+    const expected2 = [10, 20];
+    expect(plan.window(period3.end).toJSON()).to.deep.equal(expected2);
+  });
+
+  it("doesn't barf if you miss the execution window", () => {
+    const plan = new Plan();
+    const period1 = plan.addPeriod("test", (duration = [1, 5]));
+    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+    plan.addConstraint(period1.end, period2.start);
+
+    plan.commitEvent(period1.start, 0);
+    plan.commitEvent(period1.end, 6);
+
+    // still tries to keep the start in the right window
+    const expected1 = [8, 14];
+    expect(plan.window(period2.end).toJSON()).to.deep.equal(expected1);
+  });
+});
+
+describe("examples", () => {
+  before(install);
+
+  describe("from STNs for EVAs", () => {
+    const buildExample = () => {
       const plan = new Plan();
-      const period = plan.addPeriod(testName);
+      const X0 = plan.createEvent("X0");
+      const L = plan.addPeriod("L", (duration = [30, 40]));
+      const S = plan.addPeriod("S", (duration = [40, 50]));
+      plan.addConstraint(X0, L.start, (interval = [10, 20]));
+      plan.addConstraint(X0, S.end, (interval = [60, 70]));
+      plan.addConstraint(S.start, L.end, (interval = [10, 20]));
+      plan.compile();
+      return { plan, X0, L, S };
+    };
 
-      expect(period instanceof Period).to.be.true;
-      expect(plan.getDuration(period).toJSON()).to.deep.equal([0, 0]);
-      expect(period.name).to.equal(testName);
-    });
-
-    it("should create a period with a duration", () => {
-      const testDuration = [15, 20];
-      const plan = new Plan();
-      const period = plan.addPeriod("test", (duration = testDuration));
-      expect(period).to.be.ok;
-
-      const i = plan.getDuration(period);
-      expect(i.toJSON()).to.deep.equal(testDuration);
-    });
-
-    it("should chain periods together", () => {
-      const plan = new Plan();
-      const testDuration = [1, 5];
-      const period = plan.addPeriod("test", (duration = testDuration));
-      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-      plan.addConstraint(period.end, period2.start);
-
-      expect(plan.interval(period.start, period2.start).toJSON()).to.deep.equal(
-        testDuration
+    it("should report correct implicit intervals", () => {
+      const { plan, X0, L, S } = buildExample();
+      expect(plan.eventDistance(L.start, S.start), "Ls to Ss upper").to.equal(
+        20
       );
-    });
-
-    it("should provide intervals between periods", () => {
-      const plan = new Plan();
-      const period = plan.addPeriod("test", (duration = [1, 5]));
-      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-      const period3 = plan.addPeriod("test3", (duration = [0, 10]));
-      plan.addConstraint(period.end, period2.start);
-      plan.addConstraint(period2.end, period3.start);
-
-      expect(plan.interval(period.end, period3.start).toJSON()).to.deep.equal([
-        2,
-        9
-      ]);
-    });
-
-    it("should allow access to the first event", () => {
-      const plan = new Plan();
-      const period = plan.addPeriod("test", (duration = [1, 5]));
-      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-      const period3 = plan.addPeriod("test3", (duration = [0, 10]));
-      plan.addConstraint(period.end, period2.start);
-      plan.addConstraint(period2.end, period3.start);
-
-      expect(plan.root).to.equal(
-        period.start,
-        "the start of period is the first event in the plan"
+      expect(plan.eventDistance(S.start, L.start), "Ls to Ss lower").to.equal(
+        -10
       );
 
-      const expected = [3, 14];
-      expect(plan.interval(plan.root, period3.start).toJSON()).to.deep.equal(
-        expected
+      expect(plan.eventDistance(L.start, S.end), "Ls to Se upper").to.equal(60);
+      expect(plan.eventDistance(S.end, L.start), "Ls to Se lower").to.equal(
+        -50
       );
+
+      expect(plan.eventDistance(X0, L.end), "X0 to Le upper").to.equal(50);
+      expect(plan.eventDistance(L.end, X0), "X0 to Le lower").to.equal(-40);
+
+      expect(plan.eventDistance(X0, S.start), "X0 to Ss upper").to.equal(30);
+      expect(plan.eventDistance(S.start, X0), "X0 to Ss lower").to.equal(-20);
     });
 
-    it("should let you perform greedy scheduling", () => {
-      const plan = new Plan();
-      const period1 = plan.addPeriod("test", (duration = [1, 5]));
-      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-      const period3 = plan.addPeriod("test3", (duration = [0, 10]));
-      plan.addConstraint(period1.end, period2.start);
-      plan.addConstraint(period2.end, period3.start);
+    it("should give sane time stats", () => {
+      const { plan, X0, L, S } = buildExample();
 
-      plan.commitEvent(period1.start, 0);
-      plan.commitEvent(period1.end, 3);
+      const explicitInterval = [10, 20];
+      expect(plan.interval(X0, L.start).toJSON()).to.deep.equal(
+        explicitInterval
+      );
 
-      const expected1 = [5, 12];
-      expect(plan.window(period2.end).toJSON()).to.deep.equal(expected1);
-
-      plan.commitEvent(period2.start, 3);
-      plan.commitEvent(period2.end, 10);
-
-      const expected2 = [10, 20];
-      expect(plan.window(period3.end).toJSON()).to.deep.equal(expected2);
-    });
-
-    it("doesn't barf if you miss the execution window", () => {
-      const plan = new Plan();
-      const period1 = plan.addPeriod("test", (duration = [1, 5]));
-      const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-      plan.addConstraint(period1.end, period2.start);
-
-      plan.commitEvent(period1.start, 0);
-      plan.commitEvent(period1.end, 6);
-
-      // still tries to keep the start in the right window
-      const expected1 = [8, 14];
-      expect(plan.window(period2.end).toJSON()).to.deep.equal(expected1);
-    });
-  });
-
-  describe("examples", () => {
-    describe("from STNs for EVAs", () => {
-      const buildExample = () => {
-        const plan = new Plan();
-        const X0 = plan.createEvent("X0");
-        const L = plan.addPeriod("L", (duration = [30, 40]));
-        const S = plan.addPeriod("S", (duration = [40, 50]));
-        plan.addConstraint(X0, L.start, (interval = [10, 20]));
-        plan.addConstraint(X0, S.end, (interval = [60, 70]));
-        plan.addConstraint(S.start, L.end, (interval = [10, 20]));
-        plan.compile();
-        return { plan, X0, L, S };
-      };
-
-      it("should report correct implicit intervals", () => {
-        const { plan, X0, L, S } = buildExample();
-        expect(plan.eventDistance(L.start, S.start), "Ls to Ss upper").to.equal(
-          20
-        );
-        expect(plan.eventDistance(S.start, L.start), "Ls to Ss lower").to.equal(
-          -10
-        );
-
-        expect(plan.eventDistance(L.start, S.end), "Ls to Se upper").to.equal(
-          60
-        );
-        expect(plan.eventDistance(S.end, L.start), "Ls to Se lower").to.equal(
-          -50
-        );
-
-        expect(plan.eventDistance(X0, L.end), "X0 to Le upper").to.equal(50);
-        expect(plan.eventDistance(L.end, X0), "X0 to Le lower").to.equal(-40);
-
-        expect(plan.eventDistance(X0, S.start), "X0 to Ss upper").to.equal(30);
-        expect(plan.eventDistance(S.start, X0), "X0 to Ss lower").to.equal(-20);
-      });
-
-      it("should give sane time stats", () => {
-        const { plan, X0, L, S } = buildExample();
-
-        const explicitInterval = [10, 20];
-        expect(plan.interval(X0, L.start).toJSON()).to.deep.equal(
-          explicitInterval
-        );
-
-        const implicitInterval = [40, 50];
-        expect(plan.interval(X0, L.end).toJSON()).to.deep.equal(
-          implicitInterval
-        );
-      });
+      const implicitInterval = [40, 50];
+      expect(plan.interval(X0, L.end).toJSON()).to.deep.equal(implicitInterval);
     });
   });
 

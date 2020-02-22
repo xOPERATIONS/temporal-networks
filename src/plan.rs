@@ -126,6 +126,12 @@ impl Plan {
         })
     }
 
+    /// List event IDs in chronological order
+    pub fn order(&self) -> Vec<EventID> {
+        // TODO
+        vec![0]
+    }
+
     /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addPeriod`, use `addPeriod` instead
     #[wasm_bindgen(js_name = createEvent)]
     pub fn create_event(&mut self, identifier: String) -> EventID {
@@ -248,9 +254,7 @@ impl Plan {
     /// Mark an Period complete to update the schedule to following Periods. The time should be the elapsed time since the plan started (in the same units as well)
     #[wasm_bindgen(catch, js_name = completePeriod)]
     pub fn complete_period(&mut self, period: &Period, time: f64) -> Result<(), JsValue> {
-        // TODO: if outside the upper or lower bounds, update the STN?
         self.commit_event(period.end(), time)?;
-
         Ok(())
     }
 
