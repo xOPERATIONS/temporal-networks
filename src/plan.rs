@@ -10,8 +10,6 @@
 
 use petgraph::graphmap::DiGraphMap;
 use std::collections::BTreeMap;
-use std::fmt;
-use std::string::String;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 
@@ -23,17 +21,11 @@ pub type EventID = i32;
 
 /// An Period represents a logical action that occurs over a period of time. It implicitly has start and end events, which are used by `Plan`
 #[wasm_bindgen]
-#[derive(Clone, Debug, Default)]
-pub struct Period(pub EventID, pub EventID, String);
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
+pub struct Period(pub EventID, pub EventID);
 
 #[wasm_bindgen]
 impl Period {
-    /// Represents the unique identifier of the Period
-    #[wasm_bindgen(getter)]
-    pub fn name(&self) -> String {
-        self.2.clone()
-    }
-
     /// Represents the start of the Period
     #[wasm_bindgen(getter)]
     pub fn start(&self) -> EventID {
@@ -44,12 +36,6 @@ impl Period {
     #[wasm_bindgen(getter)]
     pub fn end(&self) -> EventID {
         self.1
-    }
-}
-
-impl fmt::Display for Period {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.2)
     }
 }
 
@@ -67,10 +53,10 @@ impl fmt::Display for Period {
 /// let mut plan = Plan::new();
 ///
 /// // add an Period to the plan that takes between 6 and 17 time units to complete
-/// let period1 = plan.add_period("example".to_string(), Some(vec![6., 17.]));
+/// let period1 = plan.add_period(Some(vec![6., 17.]));
 ///
 /// // add another Period and a constraint that the second occurs after the first
-/// let period2 = plan.add_period("another example".to_string(), Some(vec![8., 29.]));
+/// let period2 = plan.add_period(Some(vec![8., 29.]));
 /// plan.add_constraint(period1.end(), period2.start(), None);
 ///
 /// // find the [lower, upper] interval between the start of the plan and the start of the second Period
@@ -91,8 +77,6 @@ pub struct Plan {
     execution_windows: BTreeMap<EventID, Interval>,
     /// User-provided inputs about event completion. Also referenced to a timeframe where plan.root() is t=0
     committments: BTreeMap<EventID, f64>,
-    /// housekeeping to keep track of Period identifiers. DiGraphMap can't work with String NodeTraits
-    id_to_indices: BTreeMap<String, EventID>,
     /// Whether or not changes have been made since the last compile
     dirty: bool,
 }
@@ -134,9 +118,8 @@ impl Plan {
 
     /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addPeriod`, use `addPeriod` instead
     #[wasm_bindgen(js_name = createEvent)]
-    pub fn create_event(&mut self, identifier: String) -> EventID {
-        let event_id = self.id_to_indices.len() as i32;
-        self.id_to_indices.insert(identifier, event_id);
+    pub fn create_event(&mut self) -> EventID {
+        let event_id = self.stn.node_count() as i32;
         self.execution_windows
             .insert(event_id, Interval(-std::f64::MAX, std::f64::MAX));
         let n = self.stn.add_node(event_id);
@@ -146,23 +129,21 @@ impl Plan {
     }
 
     /// Build an Period but don't add it to the graph
-    fn new_period(&mut self, identifier: String) -> Period {
-        let start_identifier = identifier.clone() + "__START";
-        let end_identifier = identifier.clone() + "__END";
-        let start_id = self.create_event(start_identifier);
-        let end_id = self.create_event(end_identifier);
-        Period(start_id, end_id, identifier)
+    fn new_period(&mut self) -> Period {
+        let start_id = self.create_event();
+        let end_id = self.create_event();
+        Period(start_id, end_id)
     }
 
-    /// Create a new Period and add it to this plan. The identifier is recommended but not required to be unique (being unique may become a requirement in the future)
+    /// Create a new Period and add it to this plan
     #[wasm_bindgen(catch, js_name = addPeriod)]
-    pub fn add_period(&mut self, identifier: String, duration: Option<Vec<f64>>) -> Period {
+    pub fn add_period(&mut self, duration: Option<Vec<f64>>) -> Period {
         let d = duration.unwrap_or(vec![0., 0.]);
         let i = Interval::from_vec(d);
 
         // create the Period and add edges for its interval
         // make it a distance graph so the lower bound is negative
-        let period = self.new_period(identifier);
+        let period = self.new_period();
         self.stn.add_edge(period.0, period.1, i.upper());
         self.stn.add_edge(period.1, period.0, -i.lower());
 

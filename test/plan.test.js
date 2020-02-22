@@ -75,20 +75,18 @@ describe("Interval", () => {
 describe("Plan", () => {
   before(install);
 
-  it("should create a period with only an identifier", () => {
-    const testName = "test";
+  it("should create a period without a duration", () => {
     const plan = new Plan();
-    const period = plan.addPeriod(testName);
+    const period = plan.addPeriod();
 
     expect(period instanceof Period).to.be.true;
     expect(plan.getDuration(period).toJSON()).to.deep.equal([0, 0]);
-    expect(period.name).to.equal(testName);
   });
 
   it("should create a period with a duration", () => {
     const testDuration = [15, 20];
     const plan = new Plan();
-    const period = plan.addPeriod("test", (duration = testDuration));
+    const period = plan.addPeriod((duration = testDuration));
     expect(period).to.be.ok;
 
     const i = plan.getDuration(period);
@@ -98,8 +96,8 @@ describe("Plan", () => {
   it("should chain periods together", () => {
     const plan = new Plan();
     const testDuration = [1, 5];
-    const period = plan.addPeriod("test", (duration = testDuration));
-    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+    const period = plan.addPeriod((duration = testDuration));
+    const period2 = plan.addPeriod((duration = [2, 9]));
     plan.addConstraint(period.end, period2.start);
 
     expect(plan.interval(period.start, period2.start).toJSON()).to.deep.equal(
@@ -109,9 +107,9 @@ describe("Plan", () => {
 
   it("should provide intervals between periods", () => {
     const plan = new Plan();
-    const period = plan.addPeriod("test", (duration = [1, 5]));
-    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-    const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+    const period = plan.addPeriod((duration = [1, 5]));
+    const period2 = plan.addPeriod((duration = [2, 9]));
+    const period3 = plan.addPeriod((duration = [0, 10]));
     plan.addConstraint(period.end, period2.start);
     plan.addConstraint(period2.end, period3.start);
 
@@ -123,9 +121,9 @@ describe("Plan", () => {
 
   it("should allow access to the first event", () => {
     const plan = new Plan();
-    const period = plan.addPeriod("test", (duration = [1, 5]));
-    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-    const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+    const period = plan.addPeriod((duration = [1, 5]));
+    const period2 = plan.addPeriod((duration = [2, 9]));
+    const period3 = plan.addPeriod((duration = [0, 10]));
     plan.addConstraint(period.end, period2.start);
     plan.addConstraint(period2.end, period3.start);
 
@@ -142,9 +140,9 @@ describe("Plan", () => {
 
   it("should let you perform greedy scheduling", () => {
     const plan = new Plan();
-    const period1 = plan.addPeriod("test", (duration = [1, 5]));
-    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
-    const period3 = plan.addPeriod("test3", (duration = [0, 10]));
+    const period1 = plan.addPeriod((duration = [1, 5]));
+    const period2 = plan.addPeriod((duration = [2, 9]));
+    const period3 = plan.addPeriod((duration = [0, 10]));
     plan.addConstraint(period1.end, period2.start);
     plan.addConstraint(period2.end, period3.start);
 
@@ -163,8 +161,8 @@ describe("Plan", () => {
 
   it("doesn't barf if you miss the execution window", () => {
     const plan = new Plan();
-    const period1 = plan.addPeriod("test", (duration = [1, 5]));
-    const period2 = plan.addPeriod("test2", (duration = [2, 9]));
+    const period1 = plan.addPeriod((duration = [1, 5]));
+    const period2 = plan.addPeriod((duration = [2, 9]));
     plan.addConstraint(period1.end, period2.start);
 
     plan.commitEvent(period1.start, 0);
@@ -182,9 +180,9 @@ describe("examples", () => {
   describe("from STNs for EVAs", () => {
     const buildExample = () => {
       const plan = new Plan();
-      const X0 = plan.createEvent("X0");
-      const L = plan.addPeriod("L", (duration = [30, 40]));
-      const S = plan.addPeriod("S", (duration = [40, 50]));
+      const X0 = plan.createEvent();
+      const L = plan.addPeriod((duration = [30, 40]));
+      const S = plan.addPeriod((duration = [40, 50]));
       plan.addConstraint(X0, L.start, (interval = [10, 20]));
       plan.addConstraint(X0, S.end, (interval = [60, 70]));
       plan.addConstraint(S.start, L.end, (interval = [10, 20]));
@@ -229,10 +227,10 @@ describe("examples", () => {
   describe("from MIT 16.412 L02 slide 76", () => {
     const buildExample = () => {
       const plan = new Plan();
-      const A = plan.createEvent("A");
-      const B = plan.createEvent("B");
-      const C = plan.createEvent("C");
-      const D = plan.createEvent("D");
+      const A = plan.createEvent();
+      const B = plan.createEvent();
+      const C = plan.createEvent();
+      const D = plan.createEvent();
       plan.addConstraint(A, B, (interval = [1, 10]));
       plan.addConstraint(A, C, (interval = [0, 9]));
       plan.addConstraint(B, D, (interval = [1, 1]));
@@ -262,11 +260,11 @@ describe("examples", () => {
 
       const plan = new Plan();
       // make up an 8 hour lim cons
-      const limCons = plan.addPeriod("LIM CONS", interval([0, 480]));
+      const limCons = plan.addPeriod(interval([0, 480]));
 
       // high level activities
-      const egress = plan.addPeriod("EGRESS/SETUP", interval([40, 50]));
-      const misse7 = plan.addPeriod("MISSE7", interval([55, 65]));
+      const egress = plan.addPeriod(interval([40, 50]));
+      const misse7 = plan.addPeriod(interval([55, 65]));
 
       // string together the activities in series
       plan.addConstraint(limCons.start, egress.start);
@@ -287,18 +285,9 @@ describe("examples", () => {
       // define the tasks for each EV within each activity
 
       // EGRESS/SETUP tasks
-      const ev1Egress = plan.addPeriod(
-        "EV1 performing EGRESS",
-        interval([10, 20])
-      );
-      const ev1Setup = plan.addPeriod(
-        "EV1 performing SETUP",
-        interval([0, Number.MAX_VALUE])
-      );
-      const ev2Egress = plan.addPeriod(
-        "EV2 performing EGRESS/SETUP",
-        interval([40, 50])
-      );
+      const ev1Egress = plan.addPeriod(interval([10, 20]));
+      const ev1Setup = plan.addPeriod(interval([0, Number.MAX_VALUE]));
+      const ev2Egress = plan.addPeriod(interval([40, 50]));
       // EV1, EV2 egress in parallel but may not start at the same time
       plan.addConstraint(egress.start, ev1Egress.start);
       plan.addConstraint(ev1Egress.end, ev1Setup.start);
@@ -312,14 +301,8 @@ describe("examples", () => {
       plan.addConstraint(egress.end, ev2Egress.end);
 
       // MISSE7 tasks
-      const ev1MISSE7 = plan.addPeriod(
-        "EV1 performing MISSE 7 RETRIEVE",
-        interval([55, 65])
-      );
-      const ev2MISSE7 = plan.addPeriod(
-        "EV2 performing MISSE 7 RETRIEVE",
-        interval([55, 65])
-      );
+      const ev1MISSE7 = plan.addPeriod(interval([55, 65]));
+      const ev2MISSE7 = plan.addPeriod(interval([55, 65]));
       // EV1, EV2 perform MISSE7 in parallel
       plan.addConstraint(misse7.start, ev1MISSE7.start);
       plan.addConstraint(misse7.start, ev2MISSE7.start);
