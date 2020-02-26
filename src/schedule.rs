@@ -1,12 +1,17 @@
-//! # Plan
+//! # Schedule
 //! Defines an API designed to be exported to WASM that can perform time math without requiring the user to understand the underlying data structures or algorithms.
 //!
 //! ## Nomenclature (and some types)
-//! * **`Plan`**: a set of temporal constraints describing a set of Periods to occur. Our implementation of `Plan` can currently handle Periods that occur in series or parallel (or any mix thereof)
-//! * **Event**: a moment in time in the `Plan`
-//! * **`Period`**: A pair of start and end `Event`s
+//!
+//! We're drawing terminology from existing planners and the literature on temporal plans. Eg. see [1] pg 519 (also in docs/references/).
+//!
+//! * **`Schedule`**: a set of temporal constraints describing a set of Episodes to occur. Our implementation of `Schedule` can currently handle Episodes that occur in series or parallel (or any mix thereof)
+//! * **Event**: a moment in time in the `Schedule`
+//! * **`Episode`**: A pair of start and end `Event`s
 //! * **`Interval`**: A span of time represented in [lower, upper] range
-//! * **Duration**: An interval in the context of a `Period`, ie, the interval between the start and end events. In English, an Period with a [lower, upper] duration is "an Period that will take between lower and upper units of time to complete".
+//! * **Duration**: An interval in the context of a `Episode`, ie, the interval between the start and end events. In English, an Episode with a [lower, upper] duration is "an episode that will take between lower and upper units of time to complete".
+//!
+//! [1] Ono, M., Williams, B. C., & Blackmore, L. (2013). Probabilistic planning for continuous dynamic systems under bounded risk. Journal of Artificial Intelligence Research, 46, 511–577. https://doi.org/10.1613/jair.3893
 
 use petgraph::graphmap::DiGraphMap;
 use std::collections::BTreeMap;
@@ -16,82 +21,82 @@ use wasm_bindgen::JsValue;
 use super::algorithms::floyd_warshall;
 use super::interval::Interval;
 
-/// An ID representing an event in the plan
+/// An ID representing an event in the Schedule
 pub type EventID = i32;
 
-/// An Period represents a logical action that occurs over a period of time. It implicitly has start and end events, which are used by `Plan`
+/// An Episode represents a logical action that occurs over a period of time. It implicitly has start and end events, which are used by `Schedule`
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
-pub struct Period(pub EventID, pub EventID);
+pub struct Episode(pub EventID, pub EventID);
 
 #[wasm_bindgen]
-impl Period {
-    /// Represents the start of the Period
+impl Episode {
+    /// Represents the start of the Episode
     #[wasm_bindgen(getter)]
     pub fn start(&self) -> EventID {
         self.0
     }
 
-    /// Represents the end of the Period
+    /// Represents the end of the Episode
     #[wasm_bindgen(getter)]
     pub fn end(&self) -> EventID {
         self.1
     }
 }
 
-/// A `Plan` orchestrates events and the timing constraints between them. It allows for querying arbitrary timing information with knowledge of the underlying data structure.
+/// A `Schedule` orchestrates events and the timing constraints between them. It allows for querying arbitrary timing information with knowledge of the underlying data structure.
 ///
 /// # Example
 ///
-/// Creating a Plan and adding Periods with constraints in Rust
+/// Creating a Schedule and adding Episodes with constraints in Rust
 ///
 /// ```
-/// use temporal_networks::plan::Plan;
+/// use temporal_networks::schedule::Schedule;
 /// use temporal_networks::interval::Interval;
 ///
-/// // create a plan
-/// let mut plan = Plan::new();
+/// // create a Schedule
+/// let mut schedule = Schedule::new();
 ///
-/// // add an Period to the plan that takes between 6 and 17 time units to complete
-/// let period1 = plan.add_period(Some(vec![6., 17.]));
+/// // add an Episode to the Schedule that takes between 6 and 17 time units to complete
+/// let Episode1 = schedule.add_episode(Some(vec![6., 17.]));
 ///
-/// // add another Period and a constraint that the second occurs after the first
-/// let period2 = plan.add_period(Some(vec![8., 29.]));
-/// plan.add_constraint(period1.end(), period2.start(), None);
+/// // add another Episode and a constraint that the second occurs after the first
+/// let Episode2 = schedule.add_episode(Some(vec![8., 29.]));
+/// schedule.add_constraint(Episode1.end(), Episode2.start(), None);
 ///
-/// // find the [lower, upper] interval between the start of the plan and the start of the second Period
-/// let root = plan.root().unwrap();
-/// let result = plan.interval(root, period2.start()).unwrap();
+/// // find the [lower, upper] interval between the start of the Schedule and the start of the second Episode
+/// let root = schedule.root().unwrap();
+/// let result = schedule.interval(root, Episode2.start()).unwrap();
 ///
-/// // you may notice the interval between the start of the plan and the second Period is just the duration of the first Period!
+/// // you may notice the interval between the start of the Schedule and the second Episode is just the duration of the first Episode!
 /// assert_eq!(result, Interval::new(6., 17.));
 /// ```
 #[wasm_bindgen]
 #[derive(Debug, Default)]
-pub struct Plan {
-    /// the STN as planned by the user
+pub struct Schedule {
+    /// the STN as Schedulened by the user
     stn: DiGraphMap<EventID, f64>,
     // STN in dispatchable form after APSP
     dispatchable: DiGraphMap<EventID, f64>,
-    /// Execution windows when each event can be scheduled. Referenced to a timeframe where the plan.root() is t=0
+    /// Execution windows when each event can be scheduled. Referenced to a timeframe where the Schedule.root() is t=0
     execution_windows: BTreeMap<EventID, Interval>,
-    /// User-provided inputs about event completion. Also referenced to a timeframe where plan.root() is t=0
+    /// User-provided inputs about event completion. Also referenced to a timeframe where Schedule.root() is t=0
     committments: BTreeMap<EventID, f64>,
     /// Whether or not changes have been made since the last compile
     dirty: bool,
 }
 
 #[wasm_bindgen]
-impl Plan {
+impl Schedule {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Plan {
-        Plan {
+    pub fn new() -> Schedule {
+        Schedule {
             dirty: true,
             ..Default::default()
         }
     }
 
-    /// Get the first event in the plan. Found implicitly based on the current constraints
+    /// Get the first event in the Schedule. Found implicitly based on the current constraints
     #[wasm_bindgen(getter)]
     pub fn root(&mut self) -> Option<EventID> {
         match self.compile() {
@@ -116,7 +121,7 @@ impl Plan {
         vec![0]
     }
 
-    /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addPeriod`, use `addPeriod` instead
+    /// Low-level API for creating nodes in the graph. Advanced use only. If you can't explain why you should use this over `addEpisode`, use `addEpisode` instead
     #[wasm_bindgen(js_name = createEvent)]
     pub fn create_event(&mut self) -> EventID {
         let event_id = self.stn.node_count() as i32;
@@ -128,38 +133,38 @@ impl Plan {
         n
     }
 
-    /// Build an Period but don't add it to the graph
-    fn new_period(&mut self) -> Period {
+    /// Build an Episode but don't add it to the graph
+    fn new_episode(&mut self) -> Episode {
         let start_id = self.create_event();
         let end_id = self.create_event();
-        Period(start_id, end_id)
+        Episode(start_id, end_id)
     }
 
-    /// Create a new Period and add it to this plan
-    #[wasm_bindgen(catch, js_name = addPeriod)]
-    pub fn add_period(&mut self, duration: Option<Vec<f64>>) -> Period {
+    /// Create a new Episode and add it to this Schedule
+    #[wasm_bindgen(catch, js_name = addEpisode)]
+    pub fn add_episode(&mut self, duration: Option<Vec<f64>>) -> Episode {
         let d = duration.unwrap_or(vec![0., 0.]);
         let i = Interval::from_vec(d);
 
-        // create the Period and add edges for its interval
+        // create the Episode and add edges for its interval
         // make it a distance graph so the lower bound is negative
-        let period = self.new_period();
-        self.stn.add_edge(period.0, period.1, i.upper());
-        self.stn.add_edge(period.1, period.0, -i.lower());
+        let episode = self.new_episode();
+        self.stn.add_edge(episode.0, episode.1, i.upper());
+        self.stn.add_edge(episode.1, episode.0, -i.lower());
 
         self.dirty = true;
-        period
+        episode
     }
 
-    /// Get the controllable duration of an Period
+    /// Get the controllable duration of an Episode
     #[wasm_bindgen(js_name = getDuration)]
-    pub fn get_duration(&self, s: &Period) -> Interval {
+    pub fn get_duration(&self, s: &Episode) -> Interval {
         let lower = self.stn.edge_weight(s.1, s.0).unwrap_or(&0.);
         let upper = self.stn.edge_weight(s.0, s.1).unwrap_or(&0.);
         Interval::new(-*lower, *upper)
     }
 
-    /// Compile the plan into a dispatchable form. A dispatchable form is required to query the plan for almost any scheduling information. This method is called implicitly when you attempt to query the plan when the dispatchable graph is not up-to-date. However, you can proactively call `compile` at a time that is computationally convenient for your application to avoid paying the performance penalty when querying the plan
+    /// Compile the Schedule into a dispatchable form. A dispatchable form is required to query the Schedule for almost any scheduling information. This method is called implicitly when you attempt to query the Schedule when the dispatchable graph is not up-to-date. However, you can proactively call `compile` at a time that is computationally convenient for your application to avoid paying the performance penalty when querying the Schedule
     #[wasm_bindgen(catch)]
     pub fn compile(&mut self) -> Result<(), JsValue> {
         if !self.dirty {
@@ -221,7 +226,7 @@ impl Plan {
         Ok(())
     }
 
-    /// Low-level API for marking an event complete. Advanced use only. If you can't explain why you should use this over `completePeriod`, use `completePeriod` instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the plan started
+    /// Low-level API for marking an event complete. Advanced use only. If you can't explain why you should use this over `completeEpisode`, use `completeEpisode` instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the Schedule started
     #[wasm_bindgen(catch, js_name = commitEvent)]
     pub fn commit_event(&mut self, event: EventID, time: f64) -> Result<(), JsValue> {
         self.committments.insert(event, time);
@@ -232,10 +237,10 @@ impl Plan {
         Ok(())
     }
 
-    /// Mark an Period complete to update the schedule to following Periods. The time should be the elapsed time since the plan started (in the same units as well)
-    #[wasm_bindgen(catch, js_name = completePeriod)]
-    pub fn complete_period(&mut self, period: &Period, time: f64) -> Result<(), JsValue> {
-        self.commit_event(period.end(), time)?;
+    /// Mark an Episode complete to update the schedule to following Episodes. The time should be the elapsed time since the Schedule started (in the same units as well)
+    #[wasm_bindgen(catch, js_name = completeEpisode)]
+    pub fn complete_episode(&mut self, episode: &Episode, time: f64) -> Result<(), JsValue> {
+        self.commit_event(episode.end(), time)?;
         Ok(())
     }
 
@@ -285,13 +290,13 @@ impl Plan {
         // ensure source and target already exist
         if !self.stn.contains_node(source) {
             return Err(JsValue::from_str(&format!(
-                "Source {} is not already in the plan. Have you added it with `addPeriod`?",
+                "Source {} is not already in the Schedule. Have you added it with `addEpisode`?",
                 source
             )));
         }
         if !self.stn.contains_node(target) {
             return Err(JsValue::from_str(&format!(
-                "Target {} is not already in the plan. Have you added it with `addPeriod`?",
+                "Target {} is not already in the Schedule. Have you added it with `addEpisode`?",
                 target
             )));
         }
@@ -310,10 +315,10 @@ impl Plan {
     }
 
     pub fn update_interval(&mut self, _source: EventID, _target: EventID, _interval: Interval) {
-        //
+        // TODO
     }
 
-    /// Add a constraint between the start or end of two events. Errs if either source or target is not already in the plan. Defaults to a [0, 0] interval between events
+    /// Add a constraint between the start or end of two events. Errs if either source or target is not already in the Schedule. Defaults to a [0, 0] interval between events
     #[wasm_bindgen(js_name = addConstraint)]
     pub fn add_constraint(
         &mut self,
@@ -324,13 +329,13 @@ impl Plan {
         // ensure source and target already exist
         if !self.stn.contains_node(source) {
             return Err(JsValue::from_str(&format!(
-                "Source {} is not already in the plan. Have you added it with `addPeriod`?",
+                "Source {} is not already in the Schedule. Have you added it with `addEpisode`?",
                 source
             )));
         }
         if !self.stn.contains_node(target) {
             return Err(JsValue::from_str(&format!(
-                "Target {} is not already in the plan. Have you added it with `addPeriod`?",
+                "Target {} is not already in the Schedule. Have you added it with `addEpisode`?",
                 target
             )));
         }

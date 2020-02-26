@@ -6,8 +6,9 @@ describe("Mission high level API", () => {
 
   it("should create a mission", () => {
     const mission = new Mission();
-    expect(mission instanceof Mission).to.be.true;
     expect(mission).to.be.ok;
+    expect(mission instanceof Mission).to.be.true;
+    bar();
   });
 
   // it("should have a limiting consumable by default", () => {

@@ -1,6 +1,6 @@
-//! EVA-specific high-level functions for a mission
+//! High-level functions to build a mission using EVA timeline terminology
 
-use super::plan::{Period, Plan};
+use super::schedule::{Episode, Schedule};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::string::String;
@@ -16,14 +16,19 @@ export const LIM_CONS = "LIM CONS";
 "#;
 const LIM_CONS: &'static str = "LIM CONS";
 
-/// Actor, Parent, Description tuple
+/// A high-level action in the timeline
 #[wasm_bindgen(inspectable)]
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Step(Period, String, String, String);
+pub struct Step {
+    episode: Episode,
+    actor: String,
+    parent: String,
+    description: String,
+}
 
 impl fmt::Display for Step {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}/{} for {}", self.2, self.3, self.1)
+        write!(f, "{}/{} for {}", self.parent, self.description, self.actor)
     }
 }
 
@@ -31,10 +36,10 @@ impl fmt::Display for Step {
 #[wasm_bindgen]
 #[derive(Default)]
 pub struct Mission {
-    periods_by_actor: BTreeMap<String, Vec<Period>>,
-    /// housekeeping to keep track of Period identifiers
+    steps_by_actor: BTreeMap<String, Vec<Step>>,
+    /// housekeeping to keep track of Episode identifiers
     steps: Vec<Step>,
-    plan: Plan,
+    schedule: Schedule,
 }
 
 #[wasm_bindgen]
@@ -42,16 +47,16 @@ impl Mission {
     /// Create a new Mission
     #[wasm_bindgen(catch, constructor)]
     pub fn new() -> Result<Mission, JsValue> {
-        let mut p = Plan::new();
+        let mut p = Schedule::new();
 
-        let period = p.add_period(Some(vec![0., std::f64::MAX]));
+        let episode = p.add_episode(Some(vec![0., std::f64::MAX]));
         let mut m = Mission {
-            plan: p,
+            schedule: p,
             ..Default::default()
         };
 
         m.add_step(
-            &period,
+            &episode,
             "ALL".to_string(),
             "__ROOT__".to_string(),
             String::from(LIM_CONS),
@@ -62,12 +67,17 @@ impl Mission {
     /// Add a step with bookkeeping
     fn add_step(
         &mut self,
-        period: &Period,
+        episode: &Episode,
         actor: String,
         parent: String,
         description: String,
     ) -> Result<Step, String> {
-        let step = Step(*period, actor, parent, description);
+        let step = Step {
+            episode: *episode,
+            actor: actor,
+            parent: parent,
+            description: description,
+        };
         if self.has_step(&step) {
             return Err(format!("duplicate step {}", step));
         }
@@ -77,7 +87,7 @@ impl Mission {
         Ok(step)
     }
 
-    /// Whether or not this exact step already exists in the plan
+    /// Whether or not this exact step already exists in the Schedule
     fn has_step(&self, step: &Step) -> bool {
         self.steps.iter().any(|s| *s == *step)
     }
@@ -89,9 +99,9 @@ impl Mission {
         description: String,
         duration: Vec<f64>,
     ) -> Result<Step, JsValue> {
-        let period = self.plan.add_period(Some(duration));
+        let episode = self.schedule.add_episode(Some(duration));
         match self.add_step(
-            &period,
+            &episode,
             "ALL".to_string(),
             LIM_CONS.to_string(),
             description,
@@ -107,7 +117,7 @@ impl Mission {
 
     /// Get the available actors in a mission
     pub fn actors(mission: &Mission) -> JsValue {
-        let actors: Vec<&String> = mission.periods_by_actor.keys().collect();
+        let actors: Vec<&String> = mission.steps_by_actor.keys().collect();
         JsValue::from_serde(&actors).unwrap()
     }
 
