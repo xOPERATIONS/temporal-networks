@@ -21,7 +21,7 @@ describe("Mission high level API", () => {
     const actor = mission.createActor("EV1");
     const duration = [10, 20];
     const step = mission.createStep(actor, "EGRESS/SETUP", duration);
-    expect(mission.timing(step).duration).to.equal(duration);
+    expect(mission.timing(step).duration).to.deep.equal(duration);
   });
 
   // it("should have a limiting consumable by default", () => {

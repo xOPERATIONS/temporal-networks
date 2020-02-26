@@ -1,6 +1,7 @@
 //! High-level functions to build a mission using EVA timeline terminology
 
 use super::schedule::{Episode, Schedule};
+use serde_json::json;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::string::String;
@@ -156,13 +157,20 @@ impl Mission {
     }
 
     #[wasm_bindgen(catch)]
-    pub fn timing(&self, _step: Step) -> Result<JsValue, JsValue> {
-        let res = &json!(
-            {
-                "duration": 0.0
+    pub fn timing(&self, step: Step) -> Result<JsValue, JsValue> {
+        let duration = self.schedule.get_duration(&step.episode);
+
+        let res = {
+            match JsValue::from_serde(&json!(
+              {
+                "duration": duration,
+              }
+            )) {
+                Ok(p) => p,
+                Err(e) => return Err(JsValue::from(&format!("could not pull timing | {}", e))),
             }
-        );
-        Ok(JsValue::from_serde(&res))
+        };
+        Ok(res)
     }
 
     /// Get the available actors in a mission
