@@ -8,28 +8,30 @@ describe("Mission high level API", () => {
     const mission = new Mission();
     expect(mission).to.be.ok;
     expect(mission instanceof Mission).to.be.true;
-    bar();
+  });
+
+  it("should create actors", () => {
+    const mission = new Mission();
+    const actor = mission.createActor("EV1");
+    expect(actor).to.equal("EV1");
+  });
+
+  it("should create steps", () => {
+    const mission = new Mission();
+    const actor = mission.createActor("EV1");
+    const duration = [10, 20];
+    const step = mission.createStep(actor, "EGRESS/SETUP", duration);
+    expect(mission.timing(step).duration).to.equal(duration);
   });
 
   // it("should have a limiting consumable by default", () => {
-  //   const mission = createMission();
+  //   const mission = new Mission();
   //   const graph = mission.d3Dump();
   //   expect(graph[0].description).to.equal(LIM_CONS);
   // });
 
-  // it("should create actors", () => {
-  //   const mission = createMission();
-  //   const actor = mission.createActor("EV1");
-  // });
-
-  // it("should create steps", () => {
-  //   const mission = createMission();
-  //   const actor = mission.createActor("EV1");
-  //   const step = mission.createStep(actor, "EGRESS/SETUP");
-  // });
-
   // it("should compose steps", () => {
-  //   const mission = createMission();
+  //   const mission = new Mission();
   //   const actor = mission.createActor("EV1");
   //   const step1 = mission.createStep(actor, "EGRESS/SETUP");
   //   const step2 = mission.createStep(actor, "MISSE7");
@@ -38,7 +40,7 @@ describe("Mission high level API", () => {
   // });
 
   // it("should append steps", () => {
-  //   const mission = createMission();
+  //   const mission = new Mission();
   //   const actor = mission.createActor("EV1");
   //   const step1 = mission.createStep(actor, "EGRESS/SETUP");
   //   const step2 = mission.createStep(actor, "MISSE7");
@@ -47,14 +49,14 @@ describe("Mission high level API", () => {
   // });
 
   // it("should create substeps", () => {
-  //   const mission = createMission();
+  //   const mission = new Mission();
   //   const actor = mission.createActor("EV1");
   //   const step1 = mission.createStep(actor, "EGRESS/SETUP");
   //   const substep = mission.createSubstep(step1, "Activate ORU");
   // });
 
   // it("should put steps by different actors in parallel", () => {
-  //   const mission = createMission();
+  //   const mission = new Mission();
   //   const ev1 = mission.createActor("EV1");
   //   const ev2 = mission.createActor("EV2");
 

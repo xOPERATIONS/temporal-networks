@@ -6,6 +6,8 @@ use std::fmt;
 use std::string::String;
 use wasm_bindgen::prelude::*;
 
+type Actor = String;
+
 // https://rustwasm.github.io/wasm-bindgen/reference/attributes/on-rust-exports/typescript_custom_section.html
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
@@ -22,13 +24,13 @@ const LIM_CONS: &'static str = "LIM CONS";
 pub struct Step {
     episode: Episode,
     actor: String,
-    parent: String,
+    // parent: String,
     description: String,
 }
 
 impl fmt::Display for Step {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}/{} for {}", self.parent, self.description, self.actor)
+        write!(f, "{} for {}", self.description, self.actor)
     }
 }
 
@@ -36,7 +38,7 @@ impl fmt::Display for Step {
 #[wasm_bindgen]
 #[derive(Default)]
 pub struct Mission {
-    steps_by_actor: BTreeMap<String, Vec<Step>>,
+    steps_by_actor: BTreeMap<Actor, Vec<Step>>,
     /// housekeeping to keep track of Episode identifiers
     steps: Vec<Step>,
     schedule: Schedule,
@@ -47,11 +49,11 @@ impl Mission {
     /// Create a new Mission
     #[wasm_bindgen(catch, constructor)]
     pub fn new() -> Result<Mission, JsValue> {
-        let mut p = Schedule::new();
+        let mut s = Schedule::new();
 
-        let episode = p.add_episode(Some(vec![0., std::f64::MAX]));
+        let episode = s.add_episode(Some(vec![0., std::f64::MAX]));
         let mut m = Mission {
-            schedule: p,
+            schedule: s,
             ..Default::default()
         };
 
@@ -69,13 +71,13 @@ impl Mission {
         &mut self,
         episode: &Episode,
         actor: String,
-        parent: String,
+        _parent: String,
         description: String,
     ) -> Result<Step, String> {
         let step = Step {
             episode: *episode,
             actor: actor,
-            parent: parent,
+            // parent: parent,
             description: description,
         };
         if self.has_step(&step) {
@@ -112,8 +114,56 @@ impl Mission {
     }
 
     /// Create a new step
-    #[wasm_bindgen(js_name = createStep)]
-    pub fn create_step() {}
+    #[wasm_bindgen(catch, js_name = createStep)]
+    pub fn create_step(
+        &mut self,
+        actor: Actor,
+        description: String,
+        duration: Vec<f64>,
+        parent: Option<Step>,
+    ) -> Result<Step, JsValue> {
+        let mut sba = self.steps_by_actor.clone();
+        let steps = match sba.get_mut(&actor) {
+            Some(steps) => steps,
+            None => return Err(JsValue::from(&format!("no such actor: `{}'", actor))),
+        };
+        let episode = self.schedule.add_episode(Some(duration));
+        let step = Step {
+            episode,
+            actor,
+            description,
+        };
+
+        match parent {
+            Some(p) => self.add_substep(&p, &step),
+            None => (),
+        };
+
+        steps.push(step.clone());
+        Ok(step)
+    }
+
+    fn add_substep(&mut self, parent: &Step, child: &Step) {
+        self.schedule
+            .add_constraint(parent.episode.start(), parent.episode.end(), None);
+    }
+
+    /// Idempotently create a new actor for this mission
+    #[wasm_bindgen(js_name = createActor)]
+    pub fn create_actor(&mut self, name: String) -> Actor {
+        self.steps_by_actor.insert(name.clone(), Vec::new());
+        name as Actor
+    }
+
+    #[wasm_bindgen(catch)]
+    pub fn timing(&self, _step: Step) -> Result<JsValue, JsValue> {
+        let res = &json!(
+            {
+                "duration": 0.0
+            }
+        );
+        Ok(JsValue::from_serde(&res))
+    }
 
     /// Get the available actors in a mission
     pub fn actors(mission: &Mission) -> JsValue {
@@ -126,8 +176,6 @@ impl Mission {
     pub fn eva_start() {
         // commit the root's execution window to 0
     }
-
-    pub fn add_substep() {}
 
     pub fn concat_steps() {}
 
