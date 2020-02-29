@@ -29,6 +29,17 @@ pub struct Step {
     description: String,
 }
 
+#[wasm_bindgen]
+impl Step {
+    #[wasm_bindgen]
+    pub fn join(&self, _other: &Step) -> Step {
+        // TODO
+        Step {
+            ..Default::default()
+        }
+    }
+}
+
 impl fmt::Display for Step {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} for {}", self.description, self.actor)
@@ -121,7 +132,7 @@ impl Mission {
         actor: Actor,
         description: String,
         duration: Vec<f64>,
-        parent: Option<Step>,
+        parent: &Step,
     ) -> Result<Step, JsValue> {
         let mut sba = self.steps_by_actor.clone();
         let steps = match sba.get_mut(&actor) {
@@ -129,16 +140,17 @@ impl Mission {
             None => return Err(JsValue::from(&format!("no such actor: `{}'", actor))),
         };
         let episode = self.schedule.add_episode(Some(duration));
+        // TODO: is it possible to make a closure over Schedule here so we can work on steps without using Schedule??
         let step = Step {
             episode,
             actor,
             description,
         };
 
-        match parent {
-            Some(p) => self.add_substep(&p, &step),
-            None => (),
-        };
+        // TODO: handle parents better
+        // re-look up how wasm_bindgen works with traits...
+        // TODO: write out more of a fluent, native JS API for composing steps
+        self.add_substep(&parent, &step);
 
         steps.push(step.clone());
         Ok(step)
@@ -157,13 +169,20 @@ impl Mission {
     }
 
     #[wasm_bindgen(catch)]
-    pub fn timing(&self, step: Step) -> Result<JsValue, JsValue> {
+    pub fn timing(&self, step: &Step) -> Result<JsValue, JsValue> {
         let duration = self.schedule.get_duration(&step.episode);
+        let execution_window = match self.schedule.window(step.episode.start()) {
+            Ok(interval) => interval,
+            Err(e) => return Err(e),
+        };
+
+        // TODO: nicer conversion to Infinity or Number.MAX_VALUE?
 
         let res = {
             match JsValue::from_serde(&json!(
               {
                 "duration": duration,
+                "execution_window": execution_window,
               }
             )) {
                 Ok(p) => p,
