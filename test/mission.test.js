@@ -16,14 +16,118 @@ describe("Mission high level API", () => {
   //   expect(actor).to.equal("EV1");
   // });
 
-  it("should create syncs", () => {
+
+  it("should create 1 step for EV1 and 2 steps (nested) for EV2", () => {
     const mission = new Mission();
-    const duration = [10, 20];
-    const description = "EGRESS/SETUP";
-    const sync = mission.createSync(description, duration);
-    expect(sync).to.be.ok;
-    expect(sync.description).to.equal(description);
-    expect(sync.duration()).to.deep.equal(duration);
+    const actor1 = mission.createActor("EV1");
+    const actor2 = mission.createActor("EV2");
+
+    const duration1 = [10, 20];
+    const description1 = "A1";
+    const step1 = mission.createStep(description1, duration1, actor1); 
+
+    expect(step1).to.be.ok;
+    expect(step1.description).to.equal(description1);
+    expect(step1.duration()).to.deep.equal(duration1);
+
+    const duration2 = [10, 20];
+    const description2 = "A2";
+    const step2 = mission.createStep(description2, duration2, actor2);
+
+    expect(step2).to.be.ok;
+    expect(step2.description).to.equal(description2);
+    expect(step2.duration()).to.deep.equal(duration2);
+
+    const duration3 = [10, 20];
+    const description3 = "A3";
+    const step3 = mission.createStep(description3, duration3, actor2);
+
+    //I expect that since the actors are the same
+    expect(step3).to.be.ok;
+    expect(step3.description).to.equal(description3);
+    expect(step3.duration()).to.deep.equal(duration3);
+
+    //makeSubStep(parent, child)
+    //here we could set step3 to be the substep of step2. Step 3 is still a step, just placing it as a child of step2. Thus implying it would be (A2s -> (A3s -> A3e) -> A2e)
+    mission.makeSubStep(step2, step3); //not sure if you'd need a return type
+
+  });
+
+
+
+  it("should create 3 steps for EV 2 (with 2 nested)", () => {
+    const mission = new Mission();
+    const actor2 = mission.createActor("EV2");
+
+    const duration1 = [10, 20];
+    const description1 = "A1";
+    const step1 = mission.createStep(description1, duration1, actor2); 
+
+    expect(step1).to.be.ok;
+    expect(step1.description).to.equal(description1);
+    expect(step1.duration()).to.deep.equal(duration1);
+
+    const duration2 = [10, 20];
+    const description2 = "A2";
+    const step2 = mission.createStep(description2, duration2, actor2);
+
+    expect(step2).to.be.ok;
+    expect(step2.description).to.equal(description2);
+    expect(step2.duration()).to.deep.equal(duration2);
+
+    // slide 16, linking A1 - A2 as a 'sync'. This should be implied by the fact they are different steps. Any step to step should imply a sync point.
+    mission.linkSteps(step1, step2);
+
+    const duration3 = [10, 20];
+    const description3 = "A3";
+    const step3 = mission.createStep(description3, duration3, actor2);
+
+    //I expect that since the actors are the same
+    expect(step3).to.be.ok;
+    expect(step3.description).to.equal(description3);
+    expect(step3.duration()).to.deep.equal(duration3);
+
+    //makeSubStep(parent, child)
+    //here we could set step3 to be the substep of step2. Step 3 is still a step, just placing it as a child of step2. Thus implying it would be (A2s -> (A3s -> A3e) -> A2e)
+    mission.makeSubStep(step2, step3); //not sure if you'd need a return type
+    
+  });
+
+  it("should create 3 nested steps for EV 2", () => {
+    const mission = new Mission();
+    const actor2 = mission.createActor("EV2");
+
+    const duration1 = [10, 20];
+    const description1 = "A1";
+    const step1 = mission.createStep(description1, duration1, actor2); 
+
+    expect(step1).to.be.ok;
+    expect(step1.description).to.equal(description1);
+    expect(step1.duration()).to.deep.equal(duration1);
+
+    const duration2 = [10, 20];
+    const description2 = "A2";
+    const step2 = mission.createStep(description2, duration2, actor2);
+
+    expect(step2).to.be.ok;
+    expect(step2.description).to.equal(description2);
+    expect(step2.duration()).to.deep.equal(duration2);
+
+    mission.makeSubStep(step1, step2); //makeSubStep(parent, child)
+
+    const duration3 = [10, 20];
+    const description3 = "A3";
+    const step3 = mission.createStep(description3, duration3, actor2);
+
+    //I expect that since the actors are the same
+    expect(step3).to.be.ok;
+    expect(step3.description).to.equal(description3);
+    expect(step3.duration()).to.deep.equal(duration3);
+
+    //makeSubStep(parent, child)
+    //here we could set step3 to be the substep of step2. Step 3 is still a step, just placing it as a child of step2. Thus implying it would be (A2s -> (A3s -> A3e) -> A2e)
+    mission.makeSubStep(step2, step3); //not sure if you'd need a return type
+    
   });
 
   // it("should create steps", () => {
