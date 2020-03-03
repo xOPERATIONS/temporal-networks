@@ -20,10 +20,10 @@ describe("Mission high level API", () => {
     const mission = new Mission();
     const duration = [10, 20];
     const description = "EGRESS/SETUP";
-    const step = mission.createSync(description, duration);
-    expect(step).to.be.ok;
-    expect(step.description).to.equal(description);
-    expect(step.duration()).to.deep.equal(duration);
+    const sync = mission.createSync(description, duration);
+    expect(sync).to.be.ok;
+    expect(sync.description).to.equal(description);
+    expect(sync.duration()).to.deep.equal(duration);
   });
 
   // it("should create steps", () => {

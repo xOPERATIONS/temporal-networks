@@ -51,7 +51,7 @@ function Step(description = "", duration = [], parent = null, root = null) {
   /** Get the Step as-planned duration */
   this.duration = () => {
     // turn list of substeps into a branch in the graph
-    root.constructEdges();
+    root.construct();
     // run APSP
     root.schedule.compile();
     return schedule.interval(episode.start, episode.end).toJSON();
@@ -61,10 +61,10 @@ function Step(description = "", duration = [], parent = null, root = null) {
 
   /**
    * Build the substeps into a branch that looks like so
-   * s    e
-   * \____/
+   * s      e
+   *  \____/
    */
-  this.constructEdges = () => {
+  this.construct = () => {
     if (substeps.length === 0) {
       return;
     }
@@ -84,7 +84,7 @@ function Step(description = "", duration = [], parent = null, root = null) {
     this.schedule.addConstraint(substeps[substeps.length - 1].end, episode.end);
 
     // recurse
-    substeps.forEach(s => s.constructEdges());
+    substeps.forEach(s => s.construct());
   };
 
   // this.createSubstep = duration => {
