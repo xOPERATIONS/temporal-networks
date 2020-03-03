@@ -12,7 +12,6 @@ use wasm_bindgen::JsValue;
 
 pub mod algorithms;
 pub mod interval;
-// pub mod mission;
 pub mod schedule;
 
 #[cfg(feature = "wee_alloc")]
