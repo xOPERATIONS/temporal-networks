@@ -16,14 +16,24 @@ describe("Mission high level API", () => {
   //   expect(actor).to.equal("EV1");
   // });
 
-  it("should create steps", () => {
+  it("should create syncs", () => {
     const mission = new Mission();
-    // const actor = mission.createActor("EV1");
-    // const duration = [10, 20];
-    // const step = mission.createStep(actor, "EGRESS/SETUP", duration);
-    // expect(mission.timing(step).duration).to.deep.equal(duration);
-    // expect(mission.timing(step).execution_window).to.deep.equal(duration);
+    const duration = [10, 20];
+    const description = "EGRESS/SETUP";
+    const step = mission.createSync(description, duration);
+    expect(step).to.be.ok;
+    expect(step.description).to.equal(description);
+    expect(step.duration()).to.deep.equal(duration);
   });
+
+  // it("should create steps", () => {
+  //   const mission = new Mission();
+  //   const actor = mission.createActor("EV1");
+  //   const duration = [10, 20];
+  //   const step = mission.createStep(actor, "EGRESS/SETUP", duration);
+  //   expect(mission.timing(step).duration).to.deep.equal(duration);
+  //   expect(mission.timing(step).execution_window).to.deep.equal(duration);
+  // });
 
   // it("should have a limiting consumable by default", () => {
   //   const mission = new Mission();
