@@ -9,7 +9,7 @@ all: build
 build:
 	npx wasm-pack build --scope xoperations --target nodejs --out-name index
 	cp ./js/* pkg/
-	@echo "const {Mission, Step}=require('./mission');module.exports.Mission=Mission;module.exports.Step=Step" >> pkg/index.js
+	@echo "const {Mission,Step,Actor}=require('./mission');module.exports.Mission=Mission;module.exports.Step=Step;module.exports.Actor=Actor;" >> pkg/index.js
 
 # target: doc - create docs
 doc: build

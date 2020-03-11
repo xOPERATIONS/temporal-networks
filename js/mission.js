@@ -1,130 +1,150 @@
 /**
- * Running in the context of ./pkg after the wasm has been built
+ * Running in the context of ./pkg after the wasm has been built. We're using old-school JS function classes for compatibility purposes and to avoid transpiling
  */
 
-const { Schedule, interval } = require("./index");
+const { Schedule, Interval } = require("./index");
 
-/** Step */
-function Step(description = "", duration = [], parent = null, root = null) {
-  let episode, schedule;
-  if (!parent) {
-    schedule = new Schedule();
-    // represents the limiting consumable
-    episode = schedule.addEpisode([0, Number.MAX_VALUE]);
-  } else {
-    // create a ref to the parent's schedule
-    schedule = parent.schedule;
-    // add this step
-    episode = schedule.addEpisode(duration);
-  }
-  this.schedule = schedule;
+/**
+ * An action in an EVA timeline. Should not be created directly, rather use a `Mission` or an existing `Step` to create steps.
+ */
+class Step {
+  /** Human readable description */
+  description = "";
+  /** duration of the episode represented by this step */
+  duration = null;
+  /** "extra" time before and after this step */
+  slack = null;
+  episode = null;
+  schedule = null;
+  branches = new Map();
+  root = null;
+  actor = null;
 
-  if (!root) {
-    root = this;
-  }
+  constructor(
+    description = "",
+    duration = [0, Number.MAX_VALUE],
+    slack = [[0, 0], [0, 0]],
+    parent,
+    root,
+    actor
+  ) {
+    this.description = description;
+    this.duration = duration;
+    this.slack = slack;
 
-  // just let people access description
-  this.description = description;
-
-  const substeps = [];
-
-  this.addEpisode = schedule.addEpisode;
-  this.addConstraint = schedule.addConstraint;
-
-  /** Creates a sync point in the EVA for all actors */
-  this.createSync = (description, duration = []) => {
-    if (parent) {
-      // TODO: does this make sense in terms of naming?
-      throw new Error("Cannot create a sync from a Step");
+    let schedule;
+    // handle parent, schedule references
+    if (!parent) {
+      schedule = new Schedule();
+      // represents the limiting consumable
+      this.episode = schedule.addEpisode([0, Number.MAX_VALUE]);
+    } else {
+      // create a ref to the parent's schedule
+      schedule = parent.schedule;
+      // add this step and create an episode
+      this.episode = schedule.addEpisode(duration);
     }
 
-    const sync = new Step(
-      (description = description),
-      (duration = duration),
-      (parent = this),
-      (root = root)
-    );
-    substeps.push(sync);
-    return sync;
+    if (!root) {
+      this.root = this;
+      this.nullActor = new Actor("None");
+    }
+
+    this.schedule = schedule;
+
+    // referenced methods on schedule, root
+    this.addEpisode = schedule.addEpisode;
+    this.addConstraint = schedule.addConstraint;
+  }
+
+  /**
+   * Update the amount of slack before or after this step
+   */
+  updateSlack(before = null, after = null) {
+    if (before) {
+      this.slack[0] = before;
+    }
+    if (after) {
+      this.slack[1] = after;
+    }
   };
 
-  /** Get the Step as-planned duration */
-  this.duration = () => {
-    // turn list of substeps into a branch in the graph
-    root.construct();
+  /**
+   * Create an actor for the EVA
+   */
+  createActor(name) {
+    const actor = new Actor(name);
+    return actor;
+  };
+
+  /**
+   * Create a step beneath this Mission/Step
+   */
+  createStep(description = "", duration = [], actor = null) {
+    let a = actor || this.root.nullActor;
+    if (!this.branches.has(a)) {
+      this.branches.set(a, []);
+    }
+    const step = new Step(description, duration, this, root, a);
+    this.branches.get(a).push(step);
+    return step;
+  };
+
+  /**
+   * Get the Step as-planned duration
+   */
+  duration() {
+    // actually create branches in the graph
+    this.root.construct();
     // run APSP
-    root.schedule.compile();
-    return schedule.interval(episode.start, episode.end).toJSON();
+    this.root.schedule.compile();
+    return this.schedule.interval(this.episode.start, this.episode.end).toJSON();
   };
-
-  this.root = () => schedule.root;
 
   /**
    * Build the substeps into a branch that looks like so
-   * s      e
-   *  \____/
+   *
+   *              s------e
+   *      [0, INF] \____/ [0, INF]
+   *
+   * Note that there is "slack" between the first and last substeps and the main step. Slack between substeps is unioned
    */
-  this.construct = () => {
-    if (substeps.length === 0) {
+  construct() {
+    if (this.branches.size === 0) {
       return;
     }
-
-    // chain substeps together
-    substeps.forEach((substep, index) => {
-      if (index === 0) {
-        return;
-      }
-      const prevStep = substeps[index - 1];
-      this.schedule.addConstraint(prevStep.end, substep.start);
-    });
-
-    // constraint between start of this step and the first substep
-    this.schedule.addConstraint(episode.start, substeps[0].start);
-    // constraint between end of the last substep and this step
-    this.schedule.addConstraint(substeps[substeps.length - 1].end, episode.end);
-
-    // recurse
-    substeps.forEach(s => s.construct());
+    // chain substeps in branches together
+    for ([a, substeps] of this.branches.entries()) {
+      substeps.forEach((substep, index) => {
+        if (index === 0) {
+          return;
+        }
+        const prevStep = substeps[index - 1];
+        const slack = (new Interval(...prevStep.slack[1])).union(new Interval(...substep.slack[0])).toJSON();
+        this.schedule.addConstraint(prevStep.end, substep.start, slack);
+      });
+      // constraint between start of this step and the first substep
+      this.schedule.addConstraint(episode.start, substeps[0].start, [0, Number.MAX_VALUE]);
+      // constraint between end of the last substep and this step
+      this.schedule.addConstraint(
+        // allow for any amount of time between the last substep and this step
+        substeps[substeps.length - 1].end, episode.end, [0, Number.MAX_VALUE]);
+      // recurse
+      substeps.forEach(s => s.construct());
+    }
   };
-
-  // this.createSubstep = duration => {
-  //   const substep = this.addEpisode(duration);
-  //   substeps.push(substep);
-  //   return substep;
-  // };
-
-  // this.push = step => {
-  //   substeps.push(step);
-  // };
-
-  this.splice = substeps.splice;
-
-  /** Put a step right after this one */
-  // this.join = step => {
-  //   if (!parent) {
-  //     throw new Error(
-  //       "cannot join to a root step because a root step has no siblings"
-  //     );
-  //   }
-
-  //   // TODO:
-  //   // splice the step into the parent's substep array right after this step
-  //   // delete it if it exists elsewhere
-
-  //   // TODO: actually write out what this API usage looks like
-  //   parent.splice(step);
-  // };
-
-  // this.timingInfo = () => {
-  //   this.compile();
-  // };
 }
+
 module.exports.Step = Step;
 
 module.exports.Mission = function Mission() {
   return new Step();
 };
 
-module.exports.createSubstep = (parent, child, duration = []) => {
-  //
-};
+/**
+ * An actor in the timeline.
+ */
+function Actor(name = "") {
+  this.name = () => name;
+}
+module.exports.Actor = Actor;
