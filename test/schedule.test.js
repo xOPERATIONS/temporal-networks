@@ -23,6 +23,14 @@ describe("Interval", () => {
     expect(i.contains(10)).to.be.false;
   });
 
+  it("can be unioned", () => {
+    const i1 = new Interval(1, 9);
+    const i2 = new Interval(3, 4);
+    const i3 = i1.union(i2);
+    expect(i3.lower()).to.equal(3);
+    expect(i3.upper()).to.equal(4);
+  })
+
   it("has an upper and lower", () => {
     const lower = 10.1;
     const upper = 15.5;

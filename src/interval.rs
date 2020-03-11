@@ -84,6 +84,12 @@ impl Interval {
     pub fn converged(&self) -> bool {
         (self.0 - self.1).abs() < 0.001
     }
+
+    /// Union these intervals
+    #[wasm_bindgen]
+    pub fn union(&self, other: &Interval) -> Interval {
+        *self & *other
+    }
 }
 
 impl Display for Interval {
