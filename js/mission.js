@@ -31,30 +31,31 @@ class Step {
     this.description = description;
     this.duration = duration;
     this.slack = slack;
+    this.actor = actor;
 
-    let schedule;
     // handle parent, schedule references
     if (!parent) {
-      schedule = new Schedule();
+      this.schedule = new Schedule()
       // represents the limiting consumable
-      this.episode = schedule.addEpisode([0, Number.MAX_VALUE]);
+      this.episode = this.schedule.addEpisode([0, Number.MAX_VALUE]);
     } else {
       // create a ref to the parent's schedule
-      schedule = parent.schedule;
+      this.schedule = parent.schedule;
       // add this step and create an episode
-      this.episode = schedule.addEpisode(duration);
+      this.episode = this.schedule.addEpisode(duration);
     }
 
     if (!root) {
       this.root = this;
       this.nullActor = new Actor("None");
+    } else {
+      this.root = root;
     }
 
-    this.schedule = schedule;
 
     // referenced methods on schedule, root
-    this.addEpisode = schedule.addEpisode;
-    this.addConstraint = schedule.addConstraint;
+    this.addEpisode = this.schedule.addEpisode;
+    this.addConstraint = this.schedule.addConstraint;
   }
 
   /**
@@ -80,12 +81,12 @@ class Step {
   /**
    * Create a step beneath this Mission/Step
    */
-  createStep(description = "", duration = [], actor = null) {
+  createStep(description = "", duration = [], actor = null, slack) {
     let a = actor || this.root.nullActor;
     if (!this.branches.has(a)) {
       this.branches.set(a, []);
     }
-    const step = new Step(description, duration, this, root, a);
+    const step = new Step(description, duration, slack, this, this.root, a);
     this.branches.get(a).push(step);
     return step;
   };
@@ -93,7 +94,7 @@ class Step {
   /**
    * Get the Step as-planned duration
    */
-  duration() {
+  plannedDuration() {
     // actually create branches in the graph
     this.root.construct();
     // run APSP
@@ -114,7 +115,7 @@ class Step {
       return;
     }
     // chain substeps in branches together
-    for ([a, substeps] of this.branches.entries()) {
+    for (const [a, substeps] of this.branches.entries()) {
       substeps.forEach((substep, index) => {
         if (index === 0) {
           return;
@@ -124,11 +125,11 @@ class Step {
         this.schedule.addConstraint(prevStep.end, substep.start, slack);
       });
       // constraint between start of this step and the first substep
-      this.schedule.addConstraint(episode.start, substeps[0].start, [0, Number.MAX_VALUE]);
+      this.schedule.addConstraint(this.episode.start, substeps[0].start, [0, Number.MAX_VALUE]);
       // constraint between end of the last substep and this step
       this.schedule.addConstraint(
         // allow for any amount of time between the last substep and this step
-        substeps[substeps.length - 1].end, episode.end, [0, Number.MAX_VALUE]);
+        substeps[substeps.length - 1].end, this.episode.end, [0, Number.MAX_VALUE]);
       // recurse
       substeps.forEach(s => s.construct());
     }
@@ -144,7 +145,10 @@ module.exports.Mission = function Mission() {
 /**
  * An actor in the timeline.
  */
-function Actor(name = "") {
-  this.name = () => name;
+class Actor {
+  name = null;
+  constructor(name = "") {
+    this.name = name;
+  }
 }
 module.exports.Actor = Actor;

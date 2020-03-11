@@ -16,7 +16,7 @@ describe("Mission high level API", () => {
 
     expect(actor).to.be.ok;
     expect(actor instanceof Actor).to.be.true;
-    expect(actor.name()).to.equal("EV1");
+    expect(actor.name).to.equal("EV1");
   });
 
   describe("Mission", () => {
@@ -29,7 +29,7 @@ describe("Mission high level API", () => {
       const step1 = mission.createStep(description1, duration1, actor1);
 
       expect(step1).to.be.ok;
-      expect(step1.actor()).to.equal(actor1);
+      expect(step1.actor).to.equal(actor1);
     });
 
     it("should create a step without an actor", () => {
@@ -40,12 +40,12 @@ describe("Mission high level API", () => {
       const step1 = mission.createStep(description1, duration1);
 
       expect(step1).to.be.ok;
-      expect(step1.actor()).to.equal(mission.nullActor);
+      expect(step1.actor).to.equal(mission.nullActor);
     });
   });
 
   describe("Step", () => {
-    it("should report a duration", () => {
+    it("should report a planned duration", () => {
       const mission = new Mission();
       const actor1 = mission.createActor("EV1");
       const duration1 = [10, 20];
@@ -53,7 +53,7 @@ describe("Mission high level API", () => {
 
       const step1 = mission.createStep(description1, duration1, actor1);
 
-      expect(step1.duration()).to.deep.equal(duration1);
+      expect(step1.plannedDuration()).to.deep.equal(duration1);
     });
 
     it("should report a description", () => {
