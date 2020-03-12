@@ -85,6 +85,53 @@ describe("Mission high level API", () => {
       const step = mission.createStep("parent", parentDuration, actor1);
       const substep = step.createStep("child", childDuration, actor1);
       expect(substep.plannedDuration()).to.equal(parentDuration);
+    });
+
+    it("should be able to move a substep to a different actor", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+      const ev2 = mission.createActor("EV2");
+
+      const step = mission.createStep("EGRESS", [0, 45], ev1);
+      mission.changeActor(step, ev2);
+
+      expect(step.actor).to.equal(ev2);
+    });
+
+    it("should append substeps to the new actor when changing actors", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+      const ev2 = mission.createActor("EV2");
+
+      const step1 = mission.createStep("EGRESS", [1, 3], ev1);
+      const step2 = mission.createStep("EGRESS", [5, 7], ev2);
+      expect(step1.plannedStartRange()).to.deep.equal([0, 0]);
+
+      mission.changeActor(step1, ev2);
+
+      // step2 should start immediately, while step1 will start after step2 has finished
+      expect(step2.plannedStartRange()).to.deep.equal([0, 0]);
+      expect(step1.plannedStartRange()).to.deep.equal([1, 3]);
+    });
+
+    it("should reorder steps with the same actor", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+
+      // create 5 substeps under the mission
+      for (let i = 0; i++; i <= 5) {
+        mission.createStep(`substep-${i}`, [1, 1], ev1);
+      }
+
+      // this substep should be last
+      const substepToMove = mission.createStep("mover", [1, 1], ev1);
+      expect(substepToMove.plannedStartRange()).to.deep.equal([5, 5]);
+
+      // move the substep
+      mission.reorderStep(mission, substepToMove, 3);
+
+      // use the planned start time to see if it moved
+      expect(substepToMove.plannedStartRange()).to.deep.equal([3, 3]);
     })
   });
 

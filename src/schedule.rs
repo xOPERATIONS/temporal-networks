@@ -171,6 +171,8 @@ impl Schedule {
             return Ok(());
         }
 
+        // TODO: is it a problem if there are any detached Events/Episodes?
+
         // run all-pairs shortest paths
         let mappings = match floyd_warshall(&self.stn) {
             Ok(d) => d,
@@ -314,8 +316,15 @@ impl Schedule {
         Ok(JsValue::from_f64(*t))
     }
 
-    pub fn update_interval(&mut self, _source: EventID, _target: EventID, _interval: Interval) {
-        // TODO
+    pub fn update_interval(&mut self, source: EventID, target: EventID, interval: Vec<f64>) {
+        let i = Interval::from_vec(interval);
+
+        // update the edge in the STN
+        self.stn.add_edge(source, target, i.upper());
+        self.stn.add_edge(target, source, -i.lower());
+
+        // mark the STN dirty
+        self.dirty = true;
     }
 
     /// Add a constraint between the start or end of two events. Errs if either source or target is not already in the Schedule. Defaults to a [0, 0] interval between events
@@ -343,6 +352,8 @@ impl Schedule {
         let d = interval.unwrap_or(vec![0., 0.]);
         let i = Interval::from_vec(d);
 
+        // TODO: make sure this is create_or_update
+        // TODO: if no change, do not mark self.dirty?
         self.stn.add_edge(source, target, i.upper());
         self.stn.add_edge(target, source, -i.lower());
 
@@ -350,7 +361,66 @@ impl Schedule {
         Ok(())
     }
 
-    pub fn remove_constraint() {}
+    /// Remove the constraint between two events. Only errs if an Event is missing
+    #[wasm_bindgen(catch, js_name = removeConstraint)]
+    pub fn remove_constraint(&mut self, source: EventID, target: EventID) -> Result<(), JsValue> {
+        // ensure source and target exist
+        if !self.stn.contains_node(source) {
+            return Err(JsValue::from_str(&format!(
+                "Source event {} is not in the Schedule. No constraints to remove",
+                source
+            )));
+        }
+        if !self.stn.contains_node(target) {
+            return Err(JsValue::from_str(&format!(
+                "Target event {} is not in the Schedule. No constraints to remove",
+                target
+            )));
+        }
 
-    pub fn remove_constraints() {}
+        // TODO: check. and don't throw an err if there is no edge
+        self.stn.remove_edge(source, target);
+        Ok(())
+    }
+
+    /// Remove all constraints between two episodes
+    #[wasm_bindgen(catch, js_name = removeConstraints)]
+    pub fn remove_constraints(&mut self, source: &Episode, target: &Episode) -> Result<(), JsValue> {
+        // let's not assume that source and target are in order. therefore, 2 episodes have 8 possible constraints between them:
+        //    2 episodes x 2 events each x 2 directions for each edge
+
+        self.remove_constraint(source.start(), target.start())?;
+        // mark dirty as soon as one constraint is possibly removed
+        self.dirty = true;
+
+        self.remove_constraint(source.start(), target.start())?;
+        self.remove_constraint(start.start(), target.end())?;
+        self.remove_constraint(start.start(), target.end())?;
+        self.remove_constraint(target.end(), source.start())?;
+        self.remove_constraint(target.end(), source.start())?;
+        self.remove_constraint(target.end(), source.end())?;
+        self.remove_constraint(target.end(), source.end())?;
+    }
+
+    /// Remove any constraints around this Episode, except the constraints between the start and end of the Episode. This should be performed prior to moving an episode in the STN
+    #[wasm_bindgen(catch, js_name = freeEpisode)]
+    pub fn free_episode(&mut self, episode: &Episode) -> Result<(), JsValue> {
+        // TODO: fix all of this
+        // TODO: does petgraph have a better way to filter edges by node?
+
+        let edges = self.stn.edges().iter();
+        for e in edges {
+            // make sure the edge is related to this episode
+            if vec![episode.start(), episode.end()] in e {
+                // make sure it's not the edge between the start and end of this episode
+                if e.start != episode.start() e.end != episode.end() && e.start != episode.end() e.end != episode.start() {
+                    // actually remove
+                    self.stn.remove_edge(e);
+                }
+            }
+        }
+
+        self.dirty = true;
+        Ok(())
+    }
 }
