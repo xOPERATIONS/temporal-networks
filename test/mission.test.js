@@ -73,8 +73,19 @@ describe("Mission high level API", () => {
       const step = mission.createStep("parent", [10, 20], actor1);
 
       const substep = step.createStep("child", [0, 5], actor1);
-
+      expect(substep.parent).to.equal(step);
     });
+
+    it("should shorten the planned duration of a substep if the parent is smaller", () => {
+      const mission = new Mission();
+      const actor1 = mission.createActor("EV1");
+
+      const parentDuration = [4, 8];
+      const childDuration = [3, 9];
+      const step = mission.createStep("parent", parentDuration, actor1);
+      const substep = step.createStep("child", childDuration, actor1);
+      expect(substep.plannedDuration()).to.equal(parentDuration);
+    })
   });
 
   // it("should create 1 step for EV1 and 2 steps (nested) for EV2", () => {

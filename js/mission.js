@@ -17,8 +17,9 @@ class Step {
   episode = null;
   schedule = null;
   branches = new Map();
-  root = null;
   actor = null;
+  root = null;
+  parent = null;
 
   constructor(
     description = "",
@@ -32,9 +33,10 @@ class Step {
     this.duration = duration;
     this.slack = slack;
     this.actor = actor;
+    this.parent = parent;
 
     // handle parent, schedule references
-    if (!parent) {
+    if (!this.parent) {
       this.schedule = new Schedule()
       // represents the limiting consumable
       this.episode = this.schedule.addEpisode([0, Number.MAX_VALUE]);
@@ -51,7 +53,6 @@ class Step {
     } else {
       this.root = root;
     }
-
 
     // referenced methods on schedule, root
     this.addEpisode = this.schedule.addEpisode;
@@ -79,10 +80,10 @@ class Step {
   };
 
   /**
-   * Create a step beneath this Mission/Step
+   * Create a step beneath this Mission/Step. If no actor is provided, then the substep has the same actor
    */
   createStep(description = "", duration = [], actor = null, slack) {
-    let a = actor || this.root.nullActor;
+    let a = actor || this.parent.actor;
     if (!this.branches.has(a)) {
       this.branches.set(a, []);
     }
