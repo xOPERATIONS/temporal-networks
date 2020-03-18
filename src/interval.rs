@@ -78,6 +78,18 @@ impl Interval {
     pub fn is_valid(&self) -> bool {
         self.lower() <= self.upper()
     }
+
+    /// Whether or not the interval has converged to a time
+    #[wasm_bindgen]
+    pub fn converged(&self) -> bool {
+        (self.0 - self.1).abs() < 0.001
+    }
+
+    /// Union these intervals
+    #[wasm_bindgen]
+    pub fn union(&self, other: &Interval) -> Interval {
+        *self & *other
+    }
 }
 
 impl Display for Interval {
