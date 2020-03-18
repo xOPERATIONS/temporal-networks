@@ -128,7 +128,7 @@ describe("Mission high level API", () => {
       expect(step.actor).to.equal(ev2);
     });
 
-    it.only("should provide a 0-indexed execution window with one activity", () => {
+    it("should provide a 0-indexed execution window with one activity", () => {
       const mission = new Mission();
 
       // as defined when a mission is created
