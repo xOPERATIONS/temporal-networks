@@ -407,6 +407,7 @@ impl Schedule {
     pub fn free_episode(&mut self, episode: &Episode) -> Result<(), JsValue> {
         // TODO: fix all of this
         // TODO: does petgraph have a better way to filter edges by node?
+        // TODO: actually just remove incoming edges to the start, outgoing edges from the end
 
         let edges = self.stn.edges().iter();
         for e in edges {

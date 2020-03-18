@@ -7,14 +7,14 @@ const { Schedule, Interval } = require("./index");
 /**
  * An action in an EVA timeline. Should not be created directly, rather use a `Mission` or an existing `Step` to call `createStep` to create a new Step.
  *
- * Steps are meant to branch and converge into a linear structure. For example, using `s` to represent the start of the Mission, `e` to represent the end, `a` to represent an activity, and `t` to represent a task:
+ * Steps are meant to branch and converge into a linear structure. Each branch represents the actions being taken by an actor. For example, using `s` to represent the start of the Mission, `e` to represent the end, `a` to represent an activity, and `t` to represent a task, a two-actor Mission would be graphed as:
  *
  * ```
- *     ttttt     ttttt     ttttt     ttttt
+ *     ttttt     ttttt     ttttt     ttttt      <-(actor 1)
  *    /     \   /     \   /     \   /     \
  * s-a-------a-a-------a-a-------a-a-------a-e
  * |  \     /   \     /   \     /   \     /  |
- * |   ttttt     ttttt     ttttt     ttttt   |
+ * |   ttttt     ttttt     ttttt     ttttt   |  <-(actor 2)
  * |_________________________________________|
  *           (limiting consumable)
  * ```
@@ -22,14 +22,14 @@ const { Schedule, Interval } = require("./index");
  * Here you would call the series of `a`s substeps of the start and end, while each sequence of `t`s would be substeps of their parent `a`s. Substeps can be infinitely nested, eg. each `t` could have its own substeps in the form of `s` subtasks:
  *
  * ```
- *   sssss
+ *   sssss    <-(actor 1)
  *  /     \
  * t-------t
  *  \     /
- *   sssss
+ *   sssss    <-(actor 2)
  * ```
  *
- * Note that in the example above, each activity has a start and end node. The same is true for tasks, or any substeps. The methods in this class automatically handle start and end nodes for you.
+ * Note that in the first example above, each activity has a start and end node. The same is true for tasks, as shown in the second example. In fact, all Steps have a definite start and end node. The methods in this class automatically handle start and end nodes for you.
  */
 class Step {
   /** Human readable description */
@@ -95,7 +95,7 @@ class Step {
   }
 
   /**
-   * Set the duration
+   * Set the [lower, upper] interval duration of this Step
    * @param {number[]} duration
    */
   set duration(duration) {
@@ -105,7 +105,7 @@ class Step {
   }
 
   /**
-   * Remove this Step from the timeline. It may be reused elsewhere
+   * Remove this Step from the timeline. It may be reused elsewhere. Note that the substeps are popped along with the Step and will still fall under this Step after it gets replaced in the Mission
    */
   pop() {
     this.schedule.freeEpisode(this._episode);
