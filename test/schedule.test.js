@@ -255,7 +255,7 @@ describe("examples", () => {
       return { schedule, A, B, C, D };
     };
 
-    it("report correct implicit intervals", () => {
+    it("reports correct implicit intervals", () => {
       const { schedule, A, B, C, D } = buildExample();
 
       expect(schedule.interval(C, B).toJSON()).to.deep.equal([1, 1]);
@@ -265,6 +265,89 @@ describe("examples", () => {
     it("can find the first episode", () => {
       const { schedule, A } = buildExample();
       expect(schedule.root).to.equal(A);
+    });
+  });
+
+  describe("branching example", () => {
+    /*
+    Testing this type of structure, which reflects the step, substep relationship:
+
+        ttttt     ttttt     ttttt     ttttt      <-(actor 1)
+       /     \   /     \   /     \   /     \
+    s-a-------a-a-------a-a-------a-a-------a-e
+    |  \     /   \     /   \     /   \     /  |
+    |   ttttt     ttttt     ttttt     ttttt   |  <-(actor 2)
+    |_________________________________________|
+              (limiting consumable)
+    */
+
+    it('calculates sane start and end times with a single branch and no slack', () => {
+      /*
+               Cs--[2, 3]--Ce
+       [0, 0] /              \ [0, 0]
+             Ps----[1, 5]----Pe
+      */
+      const schedule = new Schedule();
+
+      const parent = schedule.addEpisode([1, 5]);
+      const child = schedule.addEpisode([2, 3]);
+
+      schedule.addConstraint(parent.start, child.start, [0, 0]);
+      schedule.addConstraint(child.end, parent.end, [0, 0]);
+
+      const parentActual = schedule.interval(parent.start, parent.end).toJSON();
+      const childActual = schedule.interval(child.start, child.end).toJSON();
+
+      // you would expect the interval for both parent and child to be their union
+      expect(parentActual).to.deep.equal([2, 3]);
+      expect(childActual).to.deep.equal([2, 3]);
+    });
+
+    it('calculates sane start and end times with a single branch and infinite slack', () => {
+      /*
+               Cs--[2, 3]--Ce
+       [0, ∞] /              \ [0, ∞]
+             Ps----[1, 5]----Pe
+      */
+      const schedule = new Schedule();
+
+      const parent = schedule.addEpisode([1, 5]);
+      const child = schedule.addEpisode([2, 3]);
+
+      schedule.addConstraint(parent.start, child.start, [0, Number.MAX_VALUE]);
+      schedule.addConstraint(child.end, parent.end, [0, Number.MAX_VALUE]);
+
+      const parentActual = schedule.interval(parent.start, parent.end).toJSON();
+      const childActual = schedule.interval(child.start, child.end).toJSON();
+
+      // you would expect the parent interval to be truncated
+      expect(parentActual).to.deep.equal([2, 5]);
+      expect(childActual).to.deep.equal([2, 3]);
+    });
+
+    it('errs when the child is longer than the parent without slack', () => {
+      /*
+               Cs--[5, 7]--Ce
+       [0, 0] /              \ [0, 0]
+             Ps----[1, 3]----Pe
+      */
+      const schedule = new Schedule();
+
+      const parent = schedule.addEpisode([1, 3]);
+      const child = schedule.addEpisode([5, 7]);
+
+      schedule.addConstraint(parent.start, child.start, [0, 0]);
+      schedule.addConstraint(child.end, parent.end, [0, 0]);
+
+      schedule.compile();
+      expect(schedule.compile).to.not.throw();
+
+      // const parentActual = schedule.interval(parent.start, parent.end).toJSON();
+      // const childActual = schedule.interval(child.start, child.end).toJSON();
+
+      // // you would expect the child interval to be the parent's
+      // expect(parentActual).to.deep.equal([1, 3]);
+      // expect(childActual).to.deep.equal([1, 3]);
     });
   });
 

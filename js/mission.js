@@ -104,6 +104,29 @@ class Step {
     this.duration = duration;
   }
 
+  debug() {
+    // actually create branches in the graph
+    this._root.construct();
+    // run APSP
+    this._root.schedule.compile();
+
+    console.log(`${this.description} start (${this._episode.start}) --[${this.plannedDuration()}]-- ${this.description} end (${this._episode.end})`);
+
+    this._branches.forEach((substeps, actor) => {
+      const intervalToSubsteps = this._root.schedule.interval(this._episode.start, substeps[0].start).toJSON();
+      const intervalFromSubsteps = this._root.schedule.interval(substeps[substeps.length - 1].end, this._episode.start).toJSON();
+
+      console.log(
+        `  --[${intervalToSubsteps}] (${actor.name}) ${
+        substeps
+          .map(s =>
+            `${s.description} start (${s._episode.start}) --[${this._root.schedule.interval(s._episode.start, s._episode.end).toJSON()}]-- ${s.description} end (${s._episode.end})`
+          )
+          .join(' - ')} [${intervalFromSubsteps}]--`
+      );
+    })
+  }
+
   /**
    * Remove this Step from the timeline. It may be reused elsewhere. Note that the substeps are popped along with the Step and will still fall under this Step after it gets replaced in the Mission
    */
@@ -261,9 +284,9 @@ class Step {
    * Build the substeps into a branch that looks like so
    *
    *              s------e
-   *      [0, INF] \____/ [0, INF]
+   *        [0, ∞] \____/ [0, ∞]
    *
-   * Note that there is [0, INF] "slack" between the first and last substeps and the main step. Slack between substeps is unioned.
+   * Note that there is [0, ∞] "slack" between the first and last substeps and the main step. Slack between substeps is unioned.
    */
   construct() {
     if (this._branches.size === 0) {

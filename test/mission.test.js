@@ -85,6 +85,8 @@ describe("Mission high level API", () => {
       const step = mission.createStep("parent", parentDuration, actor1);
       const substep = step.createStep("child", childDuration, actor1);
 
+      step.debug();
+
       // with the slack time built into substeps, 3 is still is a valid duration
       expect(substep.plannedDuration()).to.deep.equal([3, 8]);
     });
@@ -134,7 +136,7 @@ describe("Mission high level API", () => {
 
       // use the planned start time to see if it moved
       expect(substepToMove.plannedStartRange()).to.deep.equal([3, 3]);
-    })
+    });
   });
 
   // it("should create 1 step for EV1 and 2 steps (nested) for EV2", () => {
