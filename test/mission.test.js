@@ -98,8 +98,8 @@ describe("Mission high level API", () => {
       const substep = step.createStep("child", childDuration, actor1);
 
       // with the slack time built into substeps, 3 is still is a valid duration
-      // the child's max exceeds the parent, but that's not necessarily a problem
-      expect(substep.plannedDuration()).to.deep.equal([3, 9]);
+      // the substep still can't exceed the parent
+      expect(substep.plannedDuration()).to.deep.equal([3, 8]);
     });
 
     it("should let you know of potential problems", () => {
@@ -128,7 +128,7 @@ describe("Mission high level API", () => {
       expect(step.actor).to.equal(ev2);
     });
 
-    it.skip("should provide a 0-indexed execution window with one activity", () => {
+    it("should provide a 0-indexed execution window with one activity", () => {
       const mission = new Mission();
 
       // as defined when a mission is created
@@ -137,18 +137,17 @@ describe("Mission high level API", () => {
       const ev1 = mission.createActor("EV1");
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
 
-      mission.debug();
-
       // step1 should start immediately
       expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
     });
 
-    it.skip("should provide 0-indexed execution windows", () => {
+    it("should provide 0-indexed execution windows", () => {
       const mission = new Mission();
       const ev1 = mission.createActor("EV1");
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("TRAVERSE", [5, 7], ev1);
+
       expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
       expect(step2.plannedStartWindow()).to.deep.equal([1, 3]);
     });
@@ -159,7 +158,7 @@ describe("Mission high level API", () => {
       const ev2 = mission.createActor("EV2");
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
-      const step2 = mission.createStep("EGRESS", [5, 7], ev2);
+      const step2 = mission.createStep("TRAVERSE", [5, 7], ev2);
       expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
 
       mission.changeActor(step1, ev2);

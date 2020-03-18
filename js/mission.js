@@ -99,28 +99,46 @@ class Step {
    * @param {number[]} duration
    */
   set duration(duration) {
-    // TODO: I assume that petgraph.add_edge() in addConstraint is a create-or-update action
+    // TODO: never being called?
     this.schedule.addConstraint(this.episode.start, this.episode.end, duration);
+    // TODO: this is obviously a problem - recursive
     this.duration = duration;
   }
 
+  /**
+   * An event ID representing the start of this Step
+   * @returns {number}
+   */
+  get start() {
+    return this._episode.start;
+  }
+
+  /**
+   * An event ID representing the end of this Step
+   * @returns {number}
+   */
+  get end() {
+    return this._episode.end;
+  }
+
+  /**
+   * Print this step and substeps with associated intervals
+   */
   debug() {
     // actually create branches in the graph
     this._root.construct();
-    // run APSP
-    this._root.schedule.compile();
 
-    console.log(`${this.description} start (${this._episode.start}) --[${this.plannedDuration()}]-- ${this.description} end (${this._episode.end})`);
+    console.log(`${this.description} start (${this.start}) --[${this.plannedDuration()}]-- ${this.description} end (${this.end})`);
 
     this._branches.forEach((substeps, actor) => {
-      const intervalToSubsteps = this._root.schedule.interval(this._episode.start, substeps[0].start).toJSON();
-      const intervalFromSubsteps = this._root.schedule.interval(substeps[substeps.length - 1].end, this._episode.start).toJSON();
+      const intervalToSubsteps = this._root.schedule.interval(this.start, substeps[0].start).toJSON();
+      const intervalFromSubsteps = this._root.schedule.interval(substeps[substeps.length - 1].end, this.end).toJSON();
 
       console.log(
         `  --[${intervalToSubsteps}] (${actor.name}) ${
         substeps
           .map(s =>
-            `${s.description} start (${s._episode.start}) --[${this._root.schedule.interval(s._episode.start, s._episode.end).toJSON()}]-- ${s.description} end (${s._episode.end})`
+            `${s.description} start (${s.start}) --[${this._root.schedule.interval(s.start, s.end).toJSON()}]-- ${s.description} end (${s.end})`
           )
           .join(' - ')} [${intervalFromSubsteps}]--`
       );
@@ -132,7 +150,7 @@ class Step {
    * @param {number} pet The PET when this step was started
    */
   startedAt(pet) {
-    this.schedule.commitEvent(this._episode.start, pet);
+    this.schedule.commitEvent(this.start, pet);
   }
 
   /**
@@ -140,7 +158,7 @@ class Step {
    * @param {number} pet The PET when this step was completed
    */
   completedAt(pet) {
-    this.schedule.commitEvent(this._episode.end, pet);
+    this.schedule.commitEvent(this.end, pet);
   }
 
   /**
@@ -187,6 +205,7 @@ class Step {
    */
   changeActor(substep, actor) {
     // break the constraints between the substep and any other steps
+    // TODO: probably need to pop immediate siblings too?
     substep.pop();
     substep.actor = actor;
 
@@ -204,6 +223,7 @@ class Step {
    */
   reorderStep(parent, child, position, actor = null) {
     child.pop();
+    // TODO: need to pop any immediate siblings too?
 
     let a = actor || child.actor;
 
@@ -258,7 +278,6 @@ class Step {
     branch.push(step);
     this.setOrCreateBranch(a, branch);
 
-    this.dirty = true;
     return step;
   }
 
@@ -272,12 +291,12 @@ class Step {
   }
 
   /**
-   * Get the Step as-planned duration
+   * Get the Step as-planned duration as a [lower, upper] range
    */
   plannedDuration() {
     // actually create branches in the graph
     this._root.construct();
-    return this.schedule.interval(this._episode.start, this._episode.end).toJSON();
+    return this.schedule.interval(this.start, this.end).toJSON();
   }
 
   /**
@@ -289,7 +308,7 @@ class Step {
     this._root.construct();
 
     // get the start window for the start of this step
-    return this.schedule.window(this._episode.start).toJSON();
+    return this.schedule.window(this.start).toJSON();
   }
 
   /**
@@ -302,6 +321,7 @@ class Step {
    * @throws {Error} if the duration of the substeps > duration of the parent. This is not impossible from a temporal networks perspective, but it is impossible in an EVA timeline
    */
   construct() {
+    // TODO: use some kind of this.dirty to determine if this is necessary to run?
     for (const [a, substeps] of this._branches.entries()) {
       const minDuration = substeps.reduce((prev, curr) => {
         return prev + curr.duration[0];
@@ -321,15 +341,16 @@ class Step {
 
           // create a constraint between two substeps. the constraint will follow the slack set on each substep
           const prevStep = substeps[index - 1];
-          const slack = (new Interval(...prevStep.slack[1])).union(new Interval(...substep.slack[0])).toJSON();
-          this.schedule.addConstraint(prevStep.end, substep.start, slack);
+          // TODO: add back
+          // const slack = (new Interval(...prevStep.slack[1])).union(new Interval(...substep.slack[0])).toJSON();
+          this.schedule.addConstraint(prevStep.end, substep.start);
         });
       }
 
       // create a constraint between start of this step and the first substep
-      this.schedule.addConstraint(this._episode.start, substeps[0].start);
+      this.schedule.addConstraint(this.start, substeps[0].start);
       // constraint between end of the last substep and this step. allow for any amount of time between the last substep and the end of this step
-      this.schedule.addConstraint(substeps[substeps.length - 1].end, this._episode.end, [0, Number.MAX_VALUE]);
+      this.schedule.addConstraint(substeps[substeps.length - 1].end, this.end, [0, Number.MAX_VALUE]);
 
       // recurse through substeps
       substeps.forEach(s => s.construct());

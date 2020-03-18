@@ -249,7 +249,9 @@ impl Schedule {
 
     /// Get the execution window of an Event
     #[wasm_bindgen(catch)]
-    pub fn window(&self, event: EventID) -> Result<Interval, JsValue> {
+    pub fn window(&mut self, event: EventID) -> Result<Interval, JsValue> {
+        self.compile()?;
+
         match self.execution_windows.get(&event) {
             Some(i) => Ok(*i),
             None => Err(JsValue::from(&format!("could not find event {}", event))),
