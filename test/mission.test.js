@@ -128,7 +128,7 @@ describe("Mission high level API", () => {
       expect(step.actor).to.equal(ev2);
     });
 
-    it("should provide a 0-indexed execution window with one activity", () => {
+    it.skip("should provide a 0-indexed execution window with one activity", () => {
       const mission = new Mission();
 
       // as defined when a mission is created
@@ -143,7 +143,7 @@ describe("Mission high level API", () => {
       expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
     });
 
-    it("should provide 0-indexed execution windows", () => {
+    it.skip("should provide 0-indexed execution windows", () => {
       const mission = new Mission();
       const ev1 = mission.createActor("EV1");
 
@@ -153,7 +153,7 @@ describe("Mission high level API", () => {
       expect(step2.plannedStartWindow()).to.deep.equal([1, 3]);
     });
 
-    it("should append substeps to the new actor when changing actors", () => {
+    it.skip("should append substeps to the new actor when changing actors", () => {
       const mission = new Mission();
       const ev1 = mission.createActor("EV1");
       const ev2 = mission.createActor("EV2");
@@ -169,7 +169,7 @@ describe("Mission high level API", () => {
       expect(step1.plannedStartWindow()).to.deep.equal([1, 3]);
     });
 
-    it("should reorder steps with the same actor", () => {
+    it.skip("should reorder steps with the same actor", () => {
       const mission = new Mission();
       const ev1 = mission.createActor("EV1");
 
