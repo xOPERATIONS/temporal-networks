@@ -277,8 +277,6 @@ class Step {
   plannedDuration() {
     // actually create branches in the graph
     this._root.construct();
-    // run APSP
-    this._root.schedule.compile();
     return this.schedule.interval(this._episode.start, this._episode.end).toJSON();
   }
 
@@ -289,8 +287,6 @@ class Step {
   plannedStartWindow() {
     // actually create the graph
     this._root.construct();
-    // run APSP
-    this.schedule.compile();
 
     // get the start window for the start of this step
     return this.schedule.window(this._episode.start).toJSON();
