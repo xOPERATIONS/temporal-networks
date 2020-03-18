@@ -387,6 +387,26 @@ describe("examples", () => {
 
       expect(childWindow).to.deep.equal([0, 0]);
     });
+
+    it('gives a reasonable execution window with an infinite parent and slack at the end', () => {
+      /*
+               Cs--[2, 3]--Ce
+       [0, 0] /              \ [0, ∞]
+             Ps----[0, ∞]----Pe
+      */
+      const schedule = new Schedule();
+
+      const parent = schedule.addEpisode([0, Number.MAX_VALUE]);
+      const child = schedule.addEpisode([2, 3]);
+
+      schedule.addConstraint(parent.start, child.start, [0, 0]);
+      schedule.addConstraint(child.end, parent.end, [0, Number.MAX_VALUE]);
+      schedule.commitEvent(parent.start, 0.);
+
+      const childWindow = schedule.window(child.start).toJSON();
+
+      expect(childWindow).to.deep.equal([0, 0]);
+    });
   });
 
   describe("from STS 134 summary", () => {
