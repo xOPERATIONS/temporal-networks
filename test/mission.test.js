@@ -200,6 +200,23 @@ describe("Mission high level API", () => {
       expect(step6.plannedStartWindow()).to.deep.equal([6, 10]);
     });
 
+    it("should provide execution windows for nested substeps", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+
+      const egress = mission.createStep("EGRESS", [15, 20], ev1);
+      const uia = egress.createStep("work UIA", [4, 6], ev1);
+      const turnKnob = uia.createStep("turn knob", [1, 3], ev1);
+      const pressButton = uia.createStep("press button", [3, 3], ev1);
+      const depress = egress.createStep("start depress", [11, 14], ev1);
+
+      expect(egress.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(uia.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(turnKnob.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(pressButton.plannedStartWindow()).to.deep.equal([1, 3]);
+      expect(depress.plannedStartWindow()).to.deep.equal([4, 6]);
+    });
+
     it.skip("should append substeps to the new actor when changing actors", () => {
       const mission = new Mission();
       const ev1 = mission.createActor("EV1");
