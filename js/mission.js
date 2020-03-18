@@ -125,6 +125,22 @@ class Step {
           .join(' - ')} [${intervalFromSubsteps}]--`
       );
     })
+  };
+
+  /**
+   * Mark this step as having been started at a known phased elapsed time (PET)
+   * @param {number} pet The PET when this step was started
+   */
+  startedAt(pet) {
+    this.schedule.commitEvent(this._episode.start, pet);
+  }
+
+  /**
+   * Mark this step as having been completed at a known phased elapsed time (PET)
+   * @param {number} pet The PET when this step was completed
+   */
+  completedAt(pet) {
+    this.schedule.commitEvent(this._episode.end, pet);
   }
 
   /**
@@ -233,7 +249,7 @@ class Step {
    * @param {Actor} actor
    * @param {number[][]} slack [before, after] interval slack
    */
-  createStep(description = "", duration = [], actor = null, slack = null) {
+  createStep(description = "", duration = [], actor = null, slack = [[0, 0], [0, 0]]) {
     let a = actor || this.actor;
 
     const step = new Step(description, duration, slack, this, this._root, a);
@@ -270,51 +286,93 @@ class Step {
    * Get the planned start time for this step as a range of [earliest, latest]
    * @returns {number[]}
    */
-  plannedStartRange() {
+  plannedStartWindow() {
     // actually create the graph
     this._root.construct();
     // run APSP
-    this._root.schedule.compile();
+    this.schedule.compile();
 
-    // get the interval between the schedule root and this step's start
-    return this.schedule.interval(this._root._episode.start, this._episode.start).toJSON();
+    // get the start window for the start of this step
+    return this.schedule.window(this._episode.start).toJSON();
   }
 
   /**
    * Build the substeps into a branch that looks like so
    *
    *              s------e
-   *        [0, ∞] \____/ [0, ∞]
+   *        [0, 0] \____/ [0, ∞]
    *
-   * Note that there is [0, ∞] "slack" between the first and last substeps and the main step. Slack between substeps is unioned.
+   * Note that there is [0, ∞] "slack" between the last substep and the end of the step. Slack between substeps is unioned.
+   * @throws {Error} if the duration of the substeps > duration of the parent. This is not impossible from a temporal networks perspective, but it is impossible in an EVA timeline
    */
   construct() {
-    if (this._branches.size === 0) {
-      return;
-    }
-
-    // chain substeps in branches together
     for (const [a, substeps] of this._branches.entries()) {
-      substeps.forEach((substep, index) => {
-        // we're creating constraints looking back to the previous substep, so there's nothing to do on the first substep
-        if (index === 0) {
-          return;
-        }
+      const minDuration = substeps.reduce((prev, curr) => {
+        return prev + curr.duration[0];
+      }, 0);
 
-        // create a constraint between two substeps. the constraint will follow the slack set on each substep
-        const prevStep = substeps[index - 1];
-        const slack = (new Interval(...prevStep.slack[1])).union(new Interval(...substep.slack[0])).toJSON();
-        this.schedule.addConstraint(prevStep.end, substep.start, slack);
-      });
+      if (minDuration > this.duration[1]) {
+        throw new Error(`The minimum duration of substeps cannot exceed the max duration of this step | ${this.actor.name} ${this.description}: ${this.duration[1]} vs. substeps: ${minDuration}`);
+      }
 
-      // create a constraint between start of this step and the first substep with any amount of time
-      this.schedule.addConstraint(this._episode.start, substeps[0].start, [0, Number.MAX_VALUE]);
-      // constraint between end of the last substep and this step. allow for any amount of time between the last substep and this step
+      // handle slack time between substeps
+      if (substeps.length > 1) {
+        substeps.forEach((substep, index) => {
+          // we're creating constraints looking back to the previous substep, so there's nothing to do on the first substep
+          if (index === 0) {
+            return;
+          }
+
+          // create a constraint between two substeps. the constraint will follow the slack set on each substep
+          const prevStep = substeps[index - 1];
+          const slack = (new Interval(...prevStep.slack[1])).union(new Interval(...substep.slack[0])).toJSON();
+          this.schedule.addConstraint(prevStep.end, substep.start, slack);
+        });
+      }
+
+      // create a constraint between start of this step and the first substep
+      this.schedule.addConstraint(this._episode.start, substeps[0].start);
+      // constraint between end of the last substep and this step. allow for any amount of time between the last substep and the end of this step
       this.schedule.addConstraint(substeps[substeps.length - 1].end, this._episode.end, [0, Number.MAX_VALUE]);
 
       // recurse through substeps
       substeps.forEach(s => s.construct());
     }
+  };
+
+  /**
+   * Check the timeline for internal consistency with respect to parent<->child relationships. Returns issues found.
+   * @returns {object[string[]]}
+   */
+  validate() {
+    const ret = {
+      errors: [],
+      warnings: [],
+    };
+
+    for (const [a, substeps] of this._branches.entries()) {
+      const minDuration = substeps.reduce((prev, curr) => {
+        return prev + curr.duration[0];
+      }, 0);
+      const maxDuration = substeps.reduce((prev, curr) => {
+        return prev + curr.duration[1];
+      }, 0);
+
+      if (minDuration > this.duration[1]) {
+        ret.errors.push(`The minimum duration of substeps cannot exceed the max duration of this step | ${this.actor.name} ${this.description}: ${this.duration[1]} vs. substeps: ${minDuration}`);
+      }
+
+      if (maxDuration > this.duration[1]) {
+        ret.warnings.push(`The maximum duration of substeps should not exceed the max duration of this step | ${this.actor.name} ${this.description}: ${this.duration[1]} vs. substeps: ${maxDuration}`);
+      }
+
+      // recurse through substeps
+      const subrets = substeps.map(s => s.validate());
+      ret.errors = ret.errors.concat(subrets.map(s => s.errors)).flat();
+      ret.warnings = ret.warnings.concat(subrets.map(s => s.warnings)).flat();
+    }
+
+    return ret;
   };
 }
 
@@ -325,7 +383,10 @@ module.exports.Step = Step;
  * @returns {Step}
  */
 module.exports.Mission = function Mission() {
-  return new Step();
+  const mission = new Step('LIM_CONS');
+  // ensure a 0-indexed PET
+  mission.startedAt(0.);
+  return mission;
 };
 
 /**

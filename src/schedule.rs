@@ -353,8 +353,6 @@ impl Schedule {
         let d = interval.unwrap_or(vec![0., 0.]);
         let i = Interval::from_vec(d);
 
-        // TODO: make sure this is create_or_update
-        // TODO: if no change, do not mark self.dirty?
         self.stn.add_edge(source, target, i.upper());
         self.stn.add_edge(target, source, -i.lower());
 

@@ -76,7 +76,19 @@ describe("Mission high level API", () => {
       expect(substep._parent).to.equal(step);
     });
 
-    it("should shorten the planned duration of a substep if the parent is smaller", () => {
+    it("should throw if the substeps must take longer than the step", () => {
+      const mission = new Mission();
+      const actor1 = mission.createActor("EV1");
+
+      const parentDuration = [1, 2];
+      const childDuration = [3, 4];
+      const step = mission.createStep("parent", parentDuration, actor1);
+      step.createStep("child", childDuration, actor1);
+
+      expect(() => mission.construct()).to.throw();
+    });
+
+    it("should allow substeps that might exceed the max", () => {
       const mission = new Mission();
       const actor1 = mission.createActor("EV1");
 
@@ -85,10 +97,24 @@ describe("Mission high level API", () => {
       const step = mission.createStep("parent", parentDuration, actor1);
       const substep = step.createStep("child", childDuration, actor1);
 
-      step.debug();
-
       // with the slack time built into substeps, 3 is still is a valid duration
-      expect(substep.plannedDuration()).to.deep.equal([3, 8]);
+      // the child's max exceeds the parent, but that's not necessarily a problem
+      expect(substep.plannedDuration()).to.deep.equal([3, 9]);
+    });
+
+    it("should let you know of potential problems", () => {
+      const mission = new Mission();
+      const actor1 = mission.createActor("EV1");
+
+      const parentDuration = [4, 8];
+      const childDuration = [3, 9];
+      const step = mission.createStep("parent", parentDuration, actor1);
+      step.createStep("child", childDuration, actor1);
+
+      const { warnings } = mission.validate();
+
+      expect(warnings).to.have.lengthOf(1);
+      expect(warnings[0]).to.include("maximum duration");
     });
 
     it("should be able to move a substep to a different actor", () => {
@@ -102,6 +128,31 @@ describe("Mission high level API", () => {
       expect(step.actor).to.equal(ev2);
     });
 
+    it.only("should provide a 0-indexed execution window with one activity", () => {
+      const mission = new Mission();
+
+      // as defined when a mission is created
+      expect(mission.plannedStartWindow()).to.deep.equal([0, 0]);
+
+      const ev1 = mission.createActor("EV1");
+      const step1 = mission.createStep("EGRESS", [1, 3], ev1);
+
+      mission.debug();
+
+      // step1 should start immediately
+      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
+    });
+
+    it("should provide 0-indexed execution windows", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+
+      const step1 = mission.createStep("EGRESS", [1, 3], ev1);
+      const step2 = mission.createStep("TRAVERSE", [5, 7], ev1);
+      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step2.plannedStartWindow()).to.deep.equal([1, 3]);
+    });
+
     it("should append substeps to the new actor when changing actors", () => {
       const mission = new Mission();
       const ev1 = mission.createActor("EV1");
@@ -109,13 +160,13 @@ describe("Mission high level API", () => {
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("EGRESS", [5, 7], ev2);
-      expect(step1.plannedStartRange()).to.deep.equal([0, 0]);
+      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
 
       mission.changeActor(step1, ev2);
 
       // step2 should start immediately, while step1 will start after step2 has finished
-      expect(step2.plannedStartRange()).to.deep.equal([0, 0]);
-      expect(step1.plannedStartRange()).to.deep.equal([1, 3]);
+      expect(step2.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step1.plannedStartWindow()).to.deep.equal([1, 3]);
     });
 
     it("should reorder steps with the same actor", () => {
@@ -129,13 +180,13 @@ describe("Mission high level API", () => {
 
       // this substep should be last
       const substepToMove = mission.createStep("mover", [1, 1], ev1);
-      expect(substepToMove.plannedStartRange()).to.deep.equal([5, 5]);
+      expect(substepToMove.plannedStartWindow()).to.deep.equal([5, 5]);
 
       // move the substep
       mission.reorderStep(mission, substepToMove, 3);
 
       // use the planned start time to see if it moved
-      expect(substepToMove.plannedStartRange()).to.deep.equal([3, 3]);
+      expect(substepToMove.plannedStartWindow()).to.deep.equal([3, 3]);
     });
   });
 

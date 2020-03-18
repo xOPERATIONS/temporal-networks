@@ -325,7 +325,7 @@ describe("examples", () => {
       expect(childActual).to.deep.equal([2, 3]);
     });
 
-    it('errs when the child is longer than the parent without slack', () => {
+    it('allows the child to have a longer duration than the parent (even though this is a problem)', () => {
       /*
                Cs--[5, 7]--Ce
        [0, 0] /              \ [0, 0]
@@ -339,15 +339,53 @@ describe("examples", () => {
       schedule.addConstraint(parent.start, child.start, [0, 0]);
       schedule.addConstraint(child.end, parent.end, [0, 0]);
 
-      schedule.compile();
-      expect(schedule.compile).to.not.throw();
+      const parentActual = schedule.interval(parent.start, parent.end).toJSON();
+      const childActual = schedule.interval(child.start, child.end).toJSON();
 
-      // const parentActual = schedule.interval(parent.start, parent.end).toJSON();
-      // const childActual = schedule.interval(child.start, child.end).toJSON();
+      // note the reversed intervals. they basically swapped parent<->child!
+      // this will need to be avoided in Step
+      expect(parentActual).to.deep.equal([5, 1]);
+      expect(childActual).to.deep.equal([5, 3]);
+    });
 
-      // // you would expect the child interval to be the parent's
-      // expect(parentActual).to.deep.equal([1, 3]);
-      // expect(childActual).to.deep.equal([1, 3]);
+    it('gives a reasonable execution window with a single branch and no slack', () => {
+      /*
+               Cs--[2, 3]--Ce
+       [0, 0] /              \ [0, 0]
+             Ps----[1, 5]----Pe
+      */
+      const schedule = new Schedule();
+
+      const parent = schedule.addEpisode([1, 5]);
+      const child = schedule.addEpisode([2, 3]);
+
+      schedule.addConstraint(parent.start, child.start, [0, 0]);
+      schedule.addConstraint(child.end, parent.end, [0, 0]);
+      schedule.commitEvent(parent.start, 0.);
+
+      const childWindow = schedule.window(child.start).toJSON();
+
+      expect(childWindow).to.deep.equal([0, 0]);
+    });
+
+    it('gives a reasonable execution window with a single branch and slack at the end', () => {
+      /*
+               Cs--[2, 3]--Ce
+       [0, 0] /              \ [0, ∞]
+             Ps----[1, 5]----Pe
+      */
+      const schedule = new Schedule();
+
+      const parent = schedule.addEpisode([1, 5]);
+      const child = schedule.addEpisode([2, 3]);
+
+      schedule.addConstraint(parent.start, child.start, [0, 0]);
+      schedule.addConstraint(child.end, parent.end, [0, Number.MAX_VALUE]);
+      schedule.commitEvent(parent.start, 0.);
+
+      const childWindow = schedule.window(child.start).toJSON();
+
+      expect(childWindow).to.deep.equal([0, 0]);
     });
   });
 
