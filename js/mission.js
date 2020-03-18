@@ -2,7 +2,7 @@
  * Running in the context of ./pkg after the wasm has been built. We're using old-school JS function classes for compatibility purposes and to avoid transpiling
  */
 
-const { Schedule, Interval } = require("./index");
+const { Episode, Interval, Schedule } = require("./index");
 
 /**
  * An action in an EVA timeline. Should not be created directly, rather use a `Mission` or an existing `Step` to call `createStep` to create a new Step.
@@ -149,6 +149,7 @@ class Step {
   changeActor(substep, actor) {
     // break the constraints between the substep and any other steps
     substep.pop();
+    substep.actor = actor;
 
     const branch = this.getOrCreateBranch(actor);
     branch.push(substep);

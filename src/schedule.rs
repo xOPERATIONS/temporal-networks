@@ -14,6 +14,7 @@
 //! [1] Ono, M., Williams, B. C., & Blackmore, L. (2013). Probabilistic planning for continuous dynamic systems under bounded risk. Journal of Artificial Intelligence Research, 46, 511–577. https://doi.org/10.1613/jair.3893
 
 use petgraph::graphmap::DiGraphMap;
+use petgraph::Direction::{Incoming, Outgoing};
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
@@ -385,7 +386,11 @@ impl Schedule {
 
     /// Remove all constraints between two episodes
     #[wasm_bindgen(catch, js_name = removeConstraints)]
-    pub fn remove_constraints(&mut self, source: &Episode, target: &Episode) -> Result<(), JsValue> {
+    pub fn remove_constraints(
+        &mut self,
+        source: &Episode,
+        target: &Episode,
+    ) -> Result<(), JsValue> {
         // let's not assume that source and target are in order. therefore, 2 episodes have 8 possible constraints between them:
         //    2 episodes x 2 events each x 2 directions for each edge
 
@@ -394,31 +399,29 @@ impl Schedule {
         self.dirty = true;
 
         self.remove_constraint(source.start(), target.start())?;
-        self.remove_constraint(start.start(), target.end())?;
-        self.remove_constraint(start.start(), target.end())?;
+        self.remove_constraint(source.start(), target.end())?;
+        self.remove_constraint(source.start(), target.end())?;
         self.remove_constraint(target.end(), source.start())?;
         self.remove_constraint(target.end(), source.start())?;
         self.remove_constraint(target.end(), source.end())?;
         self.remove_constraint(target.end(), source.end())?;
+
+        Ok(())
     }
 
     /// Remove any constraints around this Episode, except the constraints between the start and end of the Episode. This should be performed prior to moving an episode in the STN
     #[wasm_bindgen(catch, js_name = freeEpisode)]
     pub fn free_episode(&mut self, episode: &Episode) -> Result<(), JsValue> {
-        // TODO: fix all of this
-        // TODO: does petgraph have a better way to filter edges by node?
-        // TODO: actually just remove incoming edges to the start, outgoing edges from the end
+        let cloned_stn = self.stn.clone();
+        let incoming_edges = cloned_stn.neighbors_directed(episode.start(), Incoming);
+        let outgoing_edges = cloned_stn.neighbors_directed(episode.end(), Outgoing);
 
-        let edges = self.stn.edges().iter();
-        for e in edges {
-            // make sure the edge is related to this episode
-            if vec![episode.start(), episode.end()] in e {
-                // make sure it's not the edge between the start and end of this episode
-                if e.start != episode.start() e.end != episode.end() && e.start != episode.end() e.end != episode.start() {
-                    // actually remove
-                    self.stn.remove_edge(e);
-                }
-            }
+        for e in incoming_edges {
+            self.stn.remove_edge(e, episode.start());
+        }
+
+        for e in outgoing_edges {
+            self.stn.remove_edge(episode.end(), e);
         }
 
         self.dirty = true;

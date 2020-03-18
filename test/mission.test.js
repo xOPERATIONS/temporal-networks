@@ -40,7 +40,7 @@ describe("Mission high level API", () => {
       const step1 = mission.createStep(description1, duration1);
 
       expect(step1).to.be.ok;
-      expect(step1.actor).to.equal(mission.nullActor);
+      expect(step1.actor.name).to.be.empty;
     });
   });
 
@@ -73,7 +73,7 @@ describe("Mission high level API", () => {
       const step = mission.createStep("parent", [10, 20], actor1);
 
       const substep = step.createStep("child", [0, 5], actor1);
-      expect(substep.parent).to.equal(step);
+      expect(substep._parent).to.equal(step);
     });
 
     it("should shorten the planned duration of a substep if the parent is smaller", () => {
@@ -84,7 +84,9 @@ describe("Mission high level API", () => {
       const childDuration = [3, 9];
       const step = mission.createStep("parent", parentDuration, actor1);
       const substep = step.createStep("child", childDuration, actor1);
-      expect(substep.plannedDuration()).to.equal(parentDuration);
+
+      // with the slack time built into substeps, 3 is still is a valid duration
+      expect(substep.plannedDuration()).to.deep.equal([3, 8]);
     });
 
     it("should be able to move a substep to a different actor", () => {
