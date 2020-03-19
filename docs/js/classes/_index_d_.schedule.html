@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Plan | @xoperations/temporal-networks</title>
+	<title>Schedule | @xoperations/temporal-networks</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -57,51 +57,21 @@
 					<a href="../modules/_index_d_.html">&quot;index.d&quot;</a>
 				</li>
 				<li>
-					<a href="_index_d_.plan.html">Plan</a>
+					<a href="_index_d_.schedule.html">Schedule</a>
 				</li>
 			</ul>
-			<h1>Class Plan</h1>
+			<h1>Class Schedule</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>A <code>Plan</code> orchestrates events and the timing constraints between them. It allows for querying arbitrary timing information with knowledge of the underlying data structure.</p>
-					</div>
-					<a href="#example" id="example" style="color: inherit; text-decoration: none;">
-						<h1>Example</h1>
-					</a>
-					<p>Creating a Plan and adding Periods with constraints in Rust</p>
-					<pre><code>use temporal<span class="hljs-number">_n</span>etworks::plan::Plan;
-use temporal<span class="hljs-number">_n</span>etworks::interval::Interval;
-
-<span class="hljs-comment">// create a plan</span>
-<span class="hljs-keyword">let</span> mut plan = Plan::<span class="hljs-keyword">new</span>();
-
-<span class="hljs-comment">// add an Period to the plan that takes between 6 and 17 time units to complete</span>
-<span class="hljs-keyword">let</span> period<span class="hljs-number">1</span> = plan.add<span class="hljs-number">_p</span>eriod(\<span class="hljs-string">"example\"</span>.to<span class="hljs-number">_</span>string(), Some(vec![<span class="hljs-number">6</span>., <span class="hljs-number">17</span>.]));
-
-<span class="hljs-comment">// add another Period and a constraint that the second occurs after the first</span>
-<span class="hljs-keyword">let</span> period<span class="hljs-number">2</span> = plan.add<span class="hljs-number">_p</span>eriod(\<span class="hljs-string">"another example\"</span>.to<span class="hljs-number">_</span>string(), Some(vec![<span class="hljs-number">8</span>., <span class="hljs-number">29</span>.]));
-plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-number">1</span>.end(), period<span class="hljs-number">2</span>.start(), None);
-
-<span class="hljs-comment">// find the [lower, upper] interval between the start of the plan and the start of the second Period</span>
-<span class="hljs-keyword">let</span> root = plan.root().unwrap();
-<span class="hljs-keyword">let</span> result = plan.interval(root, period<span class="hljs-number">2</span>.start()).unwrap();
-
-<span class="hljs-comment">// you may notice the interval between the start of the plan and the second Period is just the duration of the first Period!</span>
-<span class="hljs-keyword">assert</span><span class="hljs-number">_</span>eq!(result, Interval::<span class="hljs-keyword">new</span>(<span class="hljs-number">6</span>., <span class="hljs-number">17</span>.));</code></pre>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Plan</span>
+						<span class="target">Schedule</span>
 					</li>
 				</ul>
 			</section>
@@ -112,32 +82,34 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_index_d_.plan.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_index_d_.schedule.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_index_d_.plan.html#root" class="tsd-kind-icon">root</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_index_d_.schedule.html#root" class="tsd-kind-icon">root</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#addconstraint" class="tsd-kind-icon">add<wbr>Constraint</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#addperiod" class="tsd-kind-icon">add<wbr>Period</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#commitevent" class="tsd-kind-icon">commit<wbr>Event</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#compile" class="tsd-kind-icon">compile</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#completeperiod" class="tsd-kind-icon">complete<wbr>Period</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#createevent" class="tsd-kind-icon">create<wbr>Event</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#eventdistance" class="tsd-kind-icon">event<wbr>Distance</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#free" class="tsd-kind-icon">free</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#getduration" class="tsd-kind-icon">get<wbr>Duration</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#interval" class="tsd-kind-icon">interval</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#update_interval" class="tsd-kind-icon">update_<wbr>interval</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.plan.html#window" class="tsd-kind-icon">window</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="_index_d_.plan.html#remove_constraint" class="tsd-kind-icon">remove_<wbr>constraint</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="_index_d_.plan.html#remove_constraints" class="tsd-kind-icon">remove_<wbr>constraints</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#addconstraint" class="tsd-kind-icon">add<wbr>Constraint</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#addepisode" class="tsd-kind-icon">add<wbr>Episode</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#commitevent" class="tsd-kind-icon">commit<wbr>Event</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#compile" class="tsd-kind-icon">compile</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#completeepisode" class="tsd-kind-icon">complete<wbr>Episode</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#createevent" class="tsd-kind-icon">create<wbr>Event</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#eventdistance" class="tsd-kind-icon">event<wbr>Distance</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#free" class="tsd-kind-icon">free</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#freeepisode" class="tsd-kind-icon">free<wbr>Episode</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#getduration" class="tsd-kind-icon">get<wbr>Duration</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#interval" class="tsd-kind-icon">interval</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#order" class="tsd-kind-icon">order</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#removeconstraint" class="tsd-kind-icon">remove<wbr>Constraint</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#removeconstraints" class="tsd-kind-icon">remove<wbr>Constraints</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#update_interval" class="tsd-kind-icon">update_<wbr>interval</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.schedule.html#window" class="tsd-kind-icon">window</a></li>
 							</ul>
 						</section>
 					</div>
@@ -149,16 +121,16 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Plan<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_index_d_.plan.html" class="tsd-signature-type">Plan</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Schedule<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_index_d_.schedule.html" class="tsd-signature-type">Schedule</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:125</li>
+									<li>Defined in index.d.ts:69</li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="_index_d_.plan.html" class="tsd-signature-type">Plan</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_index_d_.schedule.html" class="tsd-signature-type">Schedule</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -171,7 +143,7 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					<div class="tsd-signature tsd-kind-icon">root<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">undefined</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in index.d.ts:203</li>
+							<li>Defined in index.d.ts:161</li>
 						</ul>
 					</aside>
 				</section>
@@ -188,12 +160,12 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:196</li>
+									<li>Defined in index.d.ts:143</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Add a constraint between the start or end of two events. Errs if either source or target is not already in the plan. Defaults to a [0, 0] interval between events</p>
+									<p>Add a constraint between the start or end of two events. Errs if either source or target is not already in the Schedule. Defaults to a [0, 0] interval between events</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -215,33 +187,30 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="addperiod" class="tsd-anchor"></a>
-					<h3>add<wbr>Period</h3>
+					<a name="addepisode" class="tsd-anchor"></a>
+					<h3>add<wbr>Episode</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">add<wbr>Period<span class="tsd-signature-symbol">(</span>identifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, duration<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Float64Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_index_d_.period.html" class="tsd-signature-type">Period</a></li>
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Episode<span class="tsd-signature-symbol">(</span>duration<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">Float64Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:141</li>
+									<li>Defined in index.d.ts:88</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Create a new Period and add it to this plan. The identifier is recommended but not required to be unique (being unique may become a requirement in the future)</p>
+									<p>Create a new Episode and add it to this Schedule</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>identifier: <span class="tsd-signature-type">string</span></h5>
-								</li>
-								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> duration: <span class="tsd-signature-type">Float64Array</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_index_d_.period.html" class="tsd-signature-type">Period</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -255,12 +224,12 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:157</li>
+									<li>Defined in index.d.ts:104</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Low-level API for marking an event complete. Advanced use only. If you can&#39;t explain why you should use this over <code>completePeriod</code>, use <code>completePeriod</code> instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the plan started</p>
+									<p>Low-level API for marking an event complete. Advanced use only. If you can&#39;t explain why you should use this over <code>completeEpisode</code>, use <code>completeEpisode</code> instead. Commits an event to a time within its interval and greedily updates the schedule for remaining events. Time is in elapsed time since the Schedule started</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -288,12 +257,12 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:151</li>
+									<li>Defined in index.d.ts:98</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Compile the plan into a dispatchable form. A dispatchable form is required to query the plan for almost any scheduling information. This method is called implicitly when you attempt to query the plan when the dispatchable graph is not up-to-date. However, you can proactively call <code>compile</code> at a time that is computationally convenient for your application to avoid paying the performance penalty when querying the plan</p>
+									<p>Compile the Schedule into a dispatchable form. A dispatchable form is required to query the Schedule for almost any scheduling information. This method is called implicitly when you attempt to query the Schedule when the dispatchable graph is not up-to-date. However, you can proactively call <code>compile</code> at a time that is computationally convenient for your application to avoid paying the performance penalty when querying the Schedule</p>
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -301,27 +270,27 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="completeperiod" class="tsd-anchor"></a>
-					<h3>complete<wbr>Period</h3>
+					<a name="completeepisode" class="tsd-anchor"></a>
+					<h3>complete<wbr>Episode</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">complete<wbr>Period<span class="tsd-signature-symbol">(</span>period<span class="tsd-signature-symbol">: </span><a href="_index_d_.period.html" class="tsd-signature-type">Period</a>, time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">complete<wbr>Episode<span class="tsd-signature-symbol">(</span>episode<span class="tsd-signature-symbol">: </span><a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a>, time<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:163</li>
+									<li>Defined in index.d.ts:110</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Mark an Period complete to update the schedule to following Periods. The time should be the elapsed time since the plan started (in the same units as well)</p>
+									<p>Mark an Episode complete to update the schedule to following Episodes. The time should be the elapsed time since the Schedule started (in the same units as well)</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>period: <a href="_index_d_.period.html" class="tsd-signature-type">Period</a></h5>
+									<h5>episode: <a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a></h5>
 								</li>
 								<li>
 									<h5>time: <span class="tsd-signature-type">number</span></h5>
@@ -337,26 +306,20 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					<a name="createevent" class="tsd-anchor"></a>
 					<h3>create<wbr>Event</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Event<span class="tsd-signature-symbol">(</span>identifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+						<li class="tsd-signature tsd-kind-icon">create<wbr>Event<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:134</li>
+									<li>Defined in index.d.ts:82</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Low-level API for creating nodes in the graph. Advanced use only. If you can&#39;t explain why you should use this over <code>addPeriod</code>, use <code>addPeriod</code> instead</p>
+									<p>Low-level API for creating nodes in the graph. Advanced use only. If you can&#39;t explain why you should use this over <code>addEpisode</code>, use <code>addEpisode</code> instead</p>
 								</div>
 							</div>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>identifier: <span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 						</li>
 					</ul>
@@ -371,7 +334,7 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:183</li>
+									<li>Defined in index.d.ts:130</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -402,9 +365,39 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:125</li>
+									<li>Defined in index.d.ts:69</li>
 								</ul>
 							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="freeepisode" class="tsd-anchor"></a>
+					<h3>free<wbr>Episode</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">free<wbr>Episode<span class="tsd-signature-symbol">(</span>episode<span class="tsd-signature-symbol">: </span><a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in index.d.ts:160</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Remove any constraints around this Episode, except the constraints between the start and end of the Episode. This should be performed prior to moving an episode in the STN</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>episode: <a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -413,24 +406,24 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					<a name="getduration" class="tsd-anchor"></a>
 					<h3>get<wbr>Duration</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Duration<span class="tsd-signature-symbol">(</span>s<span class="tsd-signature-symbol">: </span><a href="_index_d_.period.html" class="tsd-signature-type">Period</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a></li>
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Duration<span class="tsd-signature-symbol">(</span>s<span class="tsd-signature-symbol">: </span><a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:147</li>
+									<li>Defined in index.d.ts:94</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Get the controllable duration of an Period</p>
+									<p>Get the controllable duration of an Episode</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>s: <a href="_index_d_.period.html" class="tsd-signature-type">Period</a></h5>
+									<h5>s: <a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a></h4>
@@ -447,7 +440,7 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:176</li>
+									<li>Defined in index.d.ts:123</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -469,16 +462,104 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="update_interval" class="tsd-anchor"></a>
-					<h3>update_<wbr>interval</h3>
+					<a name="order" class="tsd-anchor"></a>
+					<h3>order</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">update_<wbr>interval<span class="tsd-signature-symbol">(</span>_source<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, _target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, _interval<span class="tsd-signature-symbol">: </span><a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">order<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Int32Array</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:189</li>
+									<li>Defined in index.d.ts:77</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>List event IDs in chronological order</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Int32Array</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="removeconstraint" class="tsd-anchor"></a>
+					<h3>remove<wbr>Constraint</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>Constraint<span class="tsd-signature-symbol">(</span>source<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in index.d.ts:149</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Remove the constraint between two events. Only errs if an Event is missing</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>source: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>target: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="removeconstraints" class="tsd-anchor"></a>
+					<h3>remove<wbr>Constraints</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>Constraints<span class="tsd-signature-symbol">(</span>source<span class="tsd-signature-symbol">: </span><a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a>, target<span class="tsd-signature-symbol">: </span><a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in index.d.ts:155</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Remove all constraints between two episodes</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>source: <a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a></h5>
+								</li>
+								<li>
+									<h5>target: <a href="_index_d_.episode.html" class="tsd-signature-type">Episode</a></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="update_interval" class="tsd-anchor"></a>
+					<h3>update_<wbr>interval</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">update_<wbr>interval<span class="tsd-signature-symbol">(</span>source<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, target<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, interval<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Float64Array</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in index.d.ts:136</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -486,13 +567,13 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>_source: <span class="tsd-signature-type">number</span></h5>
+									<h5>source: <span class="tsd-signature-type">number</span></h5>
 								</li>
 								<li>
-									<h5>_target: <span class="tsd-signature-type">number</span></h5>
+									<h5>target: <span class="tsd-signature-type">number</span></h5>
 								</li>
 								<li>
-									<h5>_interval: <a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a></h5>
+									<h5>interval: <span class="tsd-signature-type">Float64Array</span></h5>
 									<div class="tsd-comment tsd-typography">
 									</div>
 								</li>
@@ -511,7 +592,7 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:169</li>
+									<li>Defined in index.d.ts:116</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -529,40 +610,6 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
-					<a name="remove_constraint" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> remove_<wbr>constraint</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">remove_<wbr>constraint<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in index.d.ts:199</li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-static">
-					<a name="remove_constraints" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagStatic">Static</span> remove_<wbr>constraints</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-static">
-						<li class="tsd-signature tsd-kind-icon">remove_<wbr>constraints<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in index.d.ts:202</li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
 			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -577,68 +624,77 @@ plan.add<span class="hljs-number">_</span>constraint(period<span class="hljs-num
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_index_bg_d_.html">&quot;index_<wbr>bg.d&quot;</a>
 					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_mission_d_.html">&quot;mission.d&quot;</a>
+					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
 					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_index_d_.interval.html" class="tsd-kind-icon">Interval</a>
+						<a href="_index_d_.episode.html" class="tsd-kind-icon">Episode</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_index_d_.period.html" class="tsd-kind-icon">Period</a>
+						<a href="_index_d_.interval.html" class="tsd-kind-icon">Interval</a>
 					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_index_d_.plan.html" class="tsd-kind-icon">Plan</a>
+						<a href="_index_d_.schedule.html" class="tsd-kind-icon">Schedule</a>
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#constructor" class="tsd-kind-icon">constructor</a>
+								<a href="_index_d_.schedule.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#root" class="tsd-kind-icon">root</a>
+								<a href="_index_d_.schedule.html#root" class="tsd-kind-icon">root</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#addconstraint" class="tsd-kind-icon">add<wbr>Constraint</a>
+								<a href="_index_d_.schedule.html#addconstraint" class="tsd-kind-icon">add<wbr>Constraint</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#addperiod" class="tsd-kind-icon">add<wbr>Period</a>
+								<a href="_index_d_.schedule.html#addepisode" class="tsd-kind-icon">add<wbr>Episode</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#commitevent" class="tsd-kind-icon">commit<wbr>Event</a>
+								<a href="_index_d_.schedule.html#commitevent" class="tsd-kind-icon">commit<wbr>Event</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#compile" class="tsd-kind-icon">compile</a>
+								<a href="_index_d_.schedule.html#compile" class="tsd-kind-icon">compile</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#completeperiod" class="tsd-kind-icon">complete<wbr>Period</a>
+								<a href="_index_d_.schedule.html#completeepisode" class="tsd-kind-icon">complete<wbr>Episode</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#createevent" class="tsd-kind-icon">create<wbr>Event</a>
+								<a href="_index_d_.schedule.html#createevent" class="tsd-kind-icon">create<wbr>Event</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#eventdistance" class="tsd-kind-icon">event<wbr>Distance</a>
+								<a href="_index_d_.schedule.html#eventdistance" class="tsd-kind-icon">event<wbr>Distance</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#free" class="tsd-kind-icon">free</a>
+								<a href="_index_d_.schedule.html#free" class="tsd-kind-icon">free</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#getduration" class="tsd-kind-icon">get<wbr>Duration</a>
+								<a href="_index_d_.schedule.html#freeepisode" class="tsd-kind-icon">free<wbr>Episode</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#interval" class="tsd-kind-icon">interval</a>
+								<a href="_index_d_.schedule.html#getduration" class="tsd-kind-icon">get<wbr>Duration</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#update_interval" class="tsd-kind-icon">update_<wbr>interval</a>
+								<a href="_index_d_.schedule.html#interval" class="tsd-kind-icon">interval</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_index_d_.plan.html#window" class="tsd-kind-icon">window</a>
+								<a href="_index_d_.schedule.html#order" class="tsd-kind-icon">order</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
-								<a href="_index_d_.plan.html#remove_constraint" class="tsd-kind-icon">remove_<wbr>constraint</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_index_d_.schedule.html#removeconstraint" class="tsd-kind-icon">remove<wbr>Constraint</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
-								<a href="_index_d_.plan.html#remove_constraints" class="tsd-kind-icon">remove_<wbr>constraints</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_index_d_.schedule.html#removeconstraints" class="tsd-kind-icon">remove<wbr>Constraints</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_index_d_.schedule.html#update_interval" class="tsd-kind-icon">update_<wbr>interval</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_index_d_.schedule.html#window" class="tsd-kind-icon">window</a>
 							</li>
 						</ul>
 					</li>

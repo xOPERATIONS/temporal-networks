@@ -1,6 +1,6 @@
 {
   "name": "temporal-networks",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Implements Temporal Networks in Rust and compiles to WASM for use in any JS project.",
   "directories": {
     "doc": "docs",

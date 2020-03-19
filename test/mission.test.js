@@ -98,8 +98,8 @@ describe("Mission high level API", () => {
       const substep = step.createStep("child", childDuration, actor1);
 
       // with the slack time built into substeps, 3 is still is a valid duration
-      // the child's max exceeds the parent, but that's not necessarily a problem
-      expect(substep.plannedDuration()).to.deep.equal([3, 9]);
+      // the substep still can't exceed the parent
+      expect(substep.plannedDuration()).to.deep.equal([3, 8]);
     });
 
     it("should let you know of potential problems", () => {
@@ -128,7 +128,7 @@ describe("Mission high level API", () => {
       expect(step.actor).to.equal(ev2);
     });
 
-    it.skip("should provide a 0-indexed execution window with one activity", () => {
+    it("should provide a 0-indexed execution window with one activity", () => {
       const mission = new Mission();
 
       // as defined when a mission is created
@@ -137,20 +137,84 @@ describe("Mission high level API", () => {
       const ev1 = mission.createActor("EV1");
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
 
-      mission.debug();
-
       // step1 should start immediately
       expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
     });
 
-    it.skip("should provide 0-indexed execution windows", () => {
+    it("should provide 0-indexed execution windows", () => {
       const mission = new Mission();
       const ev1 = mission.createActor("EV1");
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("TRAVERSE", [5, 7], ev1);
+
       expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
       expect(step2.plannedStartWindow()).to.deep.equal([1, 3]);
+    });
+
+    it("should provide reasonable execution windows for steps in series", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+
+      const step1 = mission.createStep("EGRESS", [1, 3], ev1);
+      const step2 = mission.createStep("TRAVERSE", [5, 7], ev1);
+      const step3 = mission.createStep("STATION", [5, 7], ev1);
+
+      step1.completedAt(2);
+      expect(step2.plannedStartWindow()).to.deep.equal([2, 2]);
+      expect(step3.plannedStartWindow()).to.deep.equal([7, 9]);
+
+      step2.completedAt(8.);
+      expect(step3.plannedStartWindow()).to.deep.equal([8, 8]);
+    });
+
+    it("should provide 0-indexed execution windows for steps in parallel", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+      const ev2 = mission.createActor("EV2");
+
+      const step1 = mission.createStep("EGRESS", [1, 3], ev1);
+      const step2 = mission.createStep("EGRESS", [5, 7], ev2);
+
+      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step2.plannedStartWindow()).to.deep.equal([0, 0]);
+    });
+
+    it("should provide execution windows for a bunch of steps in parallel", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+      const ev2 = mission.createActor("EV2");
+
+      const step1 = mission.createStep("EGRESS", [0, 2], ev1);
+      const step2 = mission.createStep("EGRESS", [1, 3], ev2);
+      const step3 = mission.createStep("TRAVERSE", [4, 6], ev1);
+      const step4 = mission.createStep("TRAVERSE", [5, 7], ev2);
+      const step5 = mission.createStep("STATION", [8, 10], ev1);
+      const step6 = mission.createStep("STATION", [9, 11], ev2);
+
+      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step2.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step3.plannedStartWindow()).to.deep.equal([0, 2]);
+      expect(step4.plannedStartWindow()).to.deep.equal([1, 3]);
+      expect(step5.plannedStartWindow()).to.deep.equal([4, 8]);
+      expect(step6.plannedStartWindow()).to.deep.equal([6, 10]);
+    });
+
+    it("should provide execution windows for nested substeps", () => {
+      const mission = new Mission();
+      const ev1 = mission.createActor("EV1");
+
+      const egress = mission.createStep("EGRESS", [15, 20], ev1);
+      const uia = egress.createStep("work UIA", [4, 6], ev1);
+      const turnKnob = uia.createStep("turn knob", [1, 3], ev1);
+      const pressButton = uia.createStep("press button", [3, 3], ev1);
+      const depress = egress.createStep("start depress", [11, 14], ev1);
+
+      expect(egress.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(uia.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(turnKnob.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(pressButton.plannedStartWindow()).to.deep.equal([1, 3]);
+      expect(depress.plannedStartWindow()).to.deep.equal([4, 6]);
     });
 
     it.skip("should append substeps to the new actor when changing actors", () => {
@@ -159,7 +223,7 @@ describe("Mission high level API", () => {
       const ev2 = mission.createActor("EV2");
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
-      const step2 = mission.createStep("EGRESS", [5, 7], ev2);
+      const step2 = mission.createStep("TRAVERSE", [5, 7], ev2);
       expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
 
       mission.changeActor(step1, ev2);

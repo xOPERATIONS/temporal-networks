@@ -67,38 +67,6 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>An interval represents a context-agnostic inclusive [lower, upper] time range. While Interval may be accessible from JS, the Rust implementation includes additional operator overloads for simplified arithmetic.</p>
-					</div>
-					<a href="#js-specific" id="js-specific" style="color: inherit; text-decoration: none;">
-						<h1>JS-specific</h1>
-					</a>
-					<ul>
-						<li>Use <code>.toJSON()</code> if you want to convert an <code>Interval</code> to an array of numbers</li>
-						<li>Using indexing to get the lower and upper bounds is also an option, eg. <code>interval[0] === lower &amp;&amp; interval[1] === upper</code></li>
-						<li>use <code>Number.MAX_VALUE</code> and <code>-Number.MAX_VALUE</code> to represent infinity and -infinity respectively</li>
-					</ul>
-					<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
-						<h1>Examples</h1>
-					</a>
-					<p>Interval arithmetic in Rust.</p>
-					<pre><code>use temporal_networks::<span class="hljs-built_in">int</span>erval::Interval;
-
-let <span class="hljs-built_in">int</span>erval1 = Interval::new(<span class="hljs-number">0.</span>, <span class="hljs-number">10.</span>);
-let <span class="hljs-built_in">int</span>erval2 = Interval::new(<span class="hljs-number">5.</span>, <span class="hljs-number">16.</span>);
-
-let summed_interval = Interval::new(<span class="hljs-number">5.</span>, <span class="hljs-number">26.</span>);
-assert_eq!(<span class="hljs-built_in">int</span>erval1 + <span class="hljs-built_in">int</span>erval2, summed_interval);
-
-let diff_interval = Interval::new(<span class="hljs-number">-5.</span>, <span class="hljs-number">16.</span>);
-assert_eq!(<span class="hljs-built_in">int</span>erval2 - <span class="hljs-built_in">int</span>erval1, diff_interval);
-
-let unioned_interval = Interval::new(<span class="hljs-number">5.</span>, <span class="hljs-number">10.</span>);
-assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-built_in">int</span>erval2, unioned_interval);</code></pre>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -133,6 +101,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.interval.html#isvalid" class="tsd-kind-icon">is<wbr>Valid</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.interval.html#lower" class="tsd-kind-icon">lower</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.interval.html#tojson" class="tsd-kind-icon">toJSON</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.interval.html#union" class="tsd-kind-icon">union</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_index_d_.interval.html#upper" class="tsd-kind-icon">upper</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><a href="_index_d_.interval.html#from_vec" class="tsd-kind-icon">from_<wbr>vec</a></li>
 							</ul>
@@ -152,7 +121,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:37</li>
+									<li>Defined in index.d.ts:15</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -186,7 +155,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 					<div class="tsd-signature tsd-kind-icon">0<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in index.d.ts:81</li>
+							<li>Defined in index.d.ts:65</li>
 						</ul>
 					</aside>
 				</section>
@@ -196,7 +165,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 					<div class="tsd-signature tsd-kind-icon">1<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in index.d.ts:82</li>
+							<li>Defined in index.d.ts:66</li>
 						</ul>
 					</aside>
 				</section>
@@ -213,7 +182,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:70</li>
+									<li>Defined in index.d.ts:48</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -241,7 +210,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:80</li>
+									<li>Defined in index.d.ts:58</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -263,7 +232,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:37</li>
+									<li>Defined in index.d.ts:15</li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -280,7 +249,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:75</li>
+									<li>Defined in index.d.ts:53</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -302,7 +271,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:59</li>
+									<li>Defined in index.d.ts:37</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -324,7 +293,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:54</li>
+									<li>Defined in index.d.ts:32</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -333,6 +302,34 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 								</div>
 							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="union" class="tsd-anchor"></a>
+					<h3>union</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">union<span class="tsd-signature-symbol">(</span>other<span class="tsd-signature-symbol">: </span><a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in index.d.ts:64</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Union these intervals</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>other: <a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_index_d_.interval.html" class="tsd-signature-type">Interval</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -346,7 +343,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:64</li>
+									<li>Defined in index.d.ts:42</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -368,7 +365,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in index.d.ts:49</li>
+									<li>Defined in index.d.ts:27</li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -400,10 +397,16 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_index_bg_d_.html">&quot;index_<wbr>bg.d&quot;</a>
 					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_mission_d_.html">&quot;mission.d&quot;</a>
+					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-class tsd-parent-kind-external-module">
+						<a href="_index_d_.episode.html" class="tsd-kind-icon">Episode</a>
+					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
@@ -437,6 +440,9 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 								<a href="_index_d_.interval.html#tojson" class="tsd-kind-icon">toJSON</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_index_d_.interval.html#union" class="tsd-kind-icon">union</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_index_d_.interval.html#upper" class="tsd-kind-icon">upper</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-static">
@@ -447,10 +453,7 @@ assert_eq!(<span class="hljs-built_in">int</span>erval1 &amp; <span class="hljs-
 				</ul>
 				<ul class="after-current">
 					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_index_d_.period.html" class="tsd-kind-icon">Period</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_index_d_.plan.html" class="tsd-kind-icon">Plan</a>
+						<a href="_index_d_.schedule.html" class="tsd-kind-icon">Schedule</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
 						<a href="../modules/_index_d_.html#install" class="tsd-kind-icon">install</a>

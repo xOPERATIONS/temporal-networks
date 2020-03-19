@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["temporal_networks"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html\" title=\"trait core::cmp::Eq\">Eq</a> for <a class=\"struct\" href=\"temporal_networks/schedule/struct.Episode.html\" title=\"struct temporal_networks::schedule::Episode\">Episode</a>","synthetic":false,"types":["temporal_networks::schedule::Episode"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

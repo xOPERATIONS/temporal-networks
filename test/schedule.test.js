@@ -407,6 +407,30 @@ describe("examples", () => {
 
       expect(childWindow).to.deep.equal([0, 0]);
     });
+
+    it('gives a reasonable execution window with an infinite parent, multiple children, and slack at the end', () => {
+      /*
+               C1s--[2, 3]--C1e--[0, 0]--C2s--[1, 9]--C2e
+       [0, 0] /                                         \ [0, ∞]
+             Ps------------------[0, ∞]------------------Pe
+      */
+      const schedule = new Schedule();
+
+      const parent = schedule.addEpisode([0, Number.MAX_VALUE]);
+      const child1 = schedule.addEpisode([2, 3]);
+      const child2 = schedule.addEpisode([1, 9]);
+
+      schedule.addConstraint(parent.start, child1.start, [0, 0]);
+      schedule.addConstraint(child1.end, child2.start, [0, 0]);
+      schedule.addConstraint(child2.end, parent.end, [0, Number.MAX_VALUE]);
+      schedule.commitEvent(parent.start, 0.);
+
+      const child1Window = schedule.window(child1.start).toJSON();
+      const child2Window = schedule.window(child2.start).toJSON();
+
+      expect(child1Window).to.deep.equal([0, 0]);
+      expect(child2Window).to.deep.equal([2, 3]);
+    });
   });
 
   describe("from STS 134 summary", () => {
