@@ -95,17 +95,6 @@ class Step {
   }
 
   /**
-   * Set the [lower, upper] interval duration of this Step
-   * @param {number[]} duration
-   */
-  set duration(duration) {
-    // TODO: never being called?
-    this.schedule.addConstraint(this.episode.start, this.episode.end, duration);
-    // TODO: this is obviously a problem - recursive
-    this.duration = duration;
-  }
-
-  /**
    * An event ID representing the start of this Step
    * @returns {number}
    */
