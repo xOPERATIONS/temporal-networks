@@ -16,9 +16,9 @@ For a lot more detail on temporal networks, see [this walkthrough](https://githu
 
 ### Nomenclature
 
-* **Plan**: a collection of connected steps occuring in series or parallel representing all the actions that need to be completed
-* **Step**: an action with a defined start and end
-* **Event**: a specific action in the timeline. Eg. the start of a step is an event and the end of a step is a different event
+* **Schedule**: a graph of connected steps occuring in series or parallel representing all the actions that need to be completed
+* **Episode**: an action with a defined start and end
+* **Event**: a specific action in the timeline. Eg. the start of a episode is an event and the end of a episode is a different event
 * **Interval**: a [lower, upper] bounded period of time
 * **Constraint**: a requirement that two events occur within an interval
 
@@ -26,7 +26,7 @@ For a lot more detail on temporal networks, see [this walkthrough](https://githu
 
 Imagine a morning routine of waking up, taking a shower, eating breakfast while reading the news, and driving to work. Here's how you would describe this routine using the nomenclature above.
 
-The whole routine from wake up to arrival at work is the **plan**. The first **event** is waking up. Taking a shower is a **step** with a start event (turning on the hot water?) and an end event (toweling off). Eating breakfast and reading the news are two separate steps happening in parallel. If eating breakfast takes between 10 and 15 minutes, the **interval** between breakfast start and breakfast end is [10, 15]. If you want to finish reading the new within 5 minutes of finishing breakfast, there is a [0, 5] interval **constraint** between the end of reading the news and the end of breakfast. If driving to work takes between 25 and 35 minutes, there is a [25, 35] interval between the start event of driving and end event of driving.
+The whole routine from wake up to arrival at work is the **schedule**. The first **event** is waking up. Taking a shower is a **episode** with a start event (turning on the hot water?) and an end event (toweling off). Eating breakfast and reading the news are two separate steps happening in parallel. If eating breakfast takes between 10 and 15 minutes, the **interval** between breakfast start and breakfast end is [10, 15]. If you want to finish reading the new within 5 minutes of finishing breakfast, there is a [0, 5] interval **constraint** between the end of reading the news and the end of breakfast. If driving to work takes between 25 and 35 minutes, there is a [25, 35] interval between the start event of driving and end event of driving.
 
 STNs are flexible, so there are multiple ways of building STNs to represent this scenario depending on your interpretation of the constraints between the events.
 
@@ -40,6 +40,11 @@ npm i @xoperations/temporal-networks
 
 In an effort to simplify building temporal networks, this library provides high level functions that reflect the structure of extravehicular activity (EVA) timelines. Sticking to these functions guarantees sane results for most use cases with EVA timelines. However, it also exposes low-level APIs if you need to fine tune your networks.
 
+Let's add to our nomenclature.
+
+* **Mission**: a high-level construct designed to build schedules using a branching structure.
+* **Step**: a high-level construct representing an episode in a schedule with the ability to generate structured substeps.
+
 We recommend building your STNs in the simplest possible way first, testing thoroughly to ensure that the schedules that are generated make sense, then only fine-tuning with the low-level APIs if necessary.
 
 As always, head over to the [JS documentation](https://xoperations.github.io/temporal-networks/js/modules/_index_d_.html) for all the details.
@@ -47,6 +52,7 @@ As always, head over to the [JS documentation](https://xoperations.github.io/tem
 ### Example 1: Building a timeline with one activity
 
 ```js
+const tn = require('@xoperations/temporal-networks');
 
 
 ```
@@ -61,6 +67,8 @@ As always, head over to the [JS documentation](https://xoperations.github.io/tem
 3. Install `make`
     * Linux/Unix: it's probably already on your system. If not, google "install make on [your OS here]"
     * Windows: http://gnuwin32.sourceforge.net/packages/make.htm
+4. [OPTIONAL] Install [`jq`](https://stedolan.github.io/jq/)
+    * Only required for publishing, which our GitHub Actions pipeline is setup to do automatically when master is changed
 
 ### Developer Installation
 
@@ -76,7 +84,7 @@ npm i
   ```sh
   make test -k
   ```
-  (You don't have to use `-k` but it ensures all tests run even if an earlier test fails (see [`make` documentation](https://www.gnu.org/software/make/manual/html_node/Errors.html)))
+  (You don't have to use `-k` but it ensures all tests run even if an earlier test fails. See [`make` documentation](https://www.gnu.org/software/make/manual/html_node/Errors.html))
 * Just test Rust
   ```sh
   make test.rust
@@ -95,6 +103,10 @@ npm i
   * Or better yet, install a code editor extension to format automatically
 
 I (Cameron) highly recommend using [VS Code](https://code.visualstudio.com/). There are very useful extensions for JS and Rust. This repo includes settings for VS Code to help with linting.
+
+### Modifying High-Level JavaScript
+
+The high-level JS, including `Mission` and `Step`, lives in `js/`. If you need to add a new JS file or change the exports, you'll need to adjust `./bin/extendpkg.sh` accordingly. All importing/exporting of manually written JS is handled by patching the automatically generated `pkg/` directory and its contents (notably adding imports/exports to `pkg/index.js` and appending files to include in `pkg/package.json`).
 
 ### CI/CD
 

@@ -7,9 +7,9 @@ all: build
 
 # target: build - build a JS agnostic package
 build:
+	rm -rf pkg/
 	npx wasm-pack build --scope xoperations --target nodejs --out-name index
-	cp ./js/* pkg/
-	@echo "const {Mission,Step,Actor}=require('./mission');module.exports.Mission=Mission;module.exports.Step=Step;module.exports.Actor=Actor;" >> pkg/index.js
+	@sh ./bin/extendpkg.sh
 
 # target: doc - create docs
 doc: build
