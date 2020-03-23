@@ -1,5 +1,9 @@
 {
   "files.insertFinalNewline": true,
+  "files.exclude": {
+    // "pkg/": true,
+    "target/": true,
+  },
   "editor.tabSize": 4,
   "editor.formatOnSave": true,
   "eslint.enable": true,

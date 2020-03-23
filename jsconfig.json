@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "checkJs": true,
+        "module": "commonjs",
+    },
+    "include": [
+        "lib",
+        "pkg"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
