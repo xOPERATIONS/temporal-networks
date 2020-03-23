@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { install, Actor, Mission, Step } = require("../pkg");
+const { install, appendTask, syncPoints, Actor, Mission, Step } = require("../pkg");
 
 describe("Mission high level API", () => {
   before(install);
@@ -10,19 +10,10 @@ describe("Mission high level API", () => {
     expect(mission instanceof Step).to.be.true;
   });
 
-  it("should create actors", () => {
-    const mission = new Mission();
-    const actor = mission.createActor("EV1");
-
-    expect(actor).to.be.ok;
-    expect(actor instanceof Actor).to.be.true;
-    expect(actor.name).to.equal("EV1");
-  });
-
   describe("Mission", () => {
     it("should create a step with an actor", () => {
       const mission = new Mission();
-      const actor1 = mission.createActor("EV1");
+      const actor1 = "EV1";
       const duration1 = [10, 20];
       const description1 = "A1";
 
@@ -40,14 +31,14 @@ describe("Mission high level API", () => {
       const step1 = mission.createStep(description1, duration1);
 
       expect(step1).to.be.ok;
-      expect(step1.actor.name).to.be.empty;
+      expect(step1.actor).to.be.empty;
     });
   });
 
   describe("Step", () => {
     it("should report a planned duration", () => {
       const mission = new Mission();
-      const actor1 = mission.createActor("EV1");
+      const actor1 = "EV1";
       const duration1 = [10, 20];
       const description1 = "A1";
 
@@ -58,7 +49,7 @@ describe("Mission high level API", () => {
 
     it("should report a description", () => {
       const mission = new Mission();
-      const actor1 = mission.createActor("EV1");
+      const actor1 = "EV1";
       const duration1 = [10, 20];
       const description1 = "A1";
 
@@ -69,7 +60,7 @@ describe("Mission high level API", () => {
 
     it("should create a substep", () => {
       const mission = new Mission();
-      const actor1 = mission.createActor("EV1");
+      const actor1 = "EV1";
       const step = mission.createStep("parent", [10, 20], actor1);
 
       const substep = step.createStep("child", [0, 5], actor1);
@@ -78,7 +69,7 @@ describe("Mission high level API", () => {
 
     it("should throw if the substeps must take longer than the step", () => {
       const mission = new Mission();
-      const actor1 = mission.createActor("EV1");
+      const actor1 = "EV1";
 
       const parentDuration = [1, 2];
       const childDuration = [3, 4];
@@ -90,7 +81,7 @@ describe("Mission high level API", () => {
 
     it("should allow substeps that might exceed the max", () => {
       const mission = new Mission();
-      const actor1 = mission.createActor("EV1");
+      const actor1 = "EV1";
 
       const parentDuration = [4, 8];
       const childDuration = [3, 9];
@@ -104,7 +95,7 @@ describe("Mission high level API", () => {
 
     it("should let you know of potential problems", () => {
       const mission = new Mission();
-      const actor1 = mission.createActor("EV1");
+      const actor1 = "EV1";
 
       const parentDuration = [4, 8];
       const childDuration = [3, 9];
@@ -119,8 +110,8 @@ describe("Mission high level API", () => {
 
     it("should be able to move a substep to a different actor", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
-      const ev2 = mission.createActor("EV2");
+      const ev1 = "EV1";
+      const ev2 = "EV2";
 
       const step = mission.createStep("EGRESS", [0, 45], ev1);
       mission.changeActor(step, ev2);
@@ -134,7 +125,7 @@ describe("Mission high level API", () => {
       // as defined when a mission is created
       expect(mission.plannedStartWindow()).to.deep.equal([0, 0]);
 
-      const ev1 = mission.createActor("EV1");
+      const ev1 = "EV1";
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
 
       // step1 should start immediately
@@ -143,7 +134,7 @@ describe("Mission high level API", () => {
 
     it("should provide 0-indexed execution windows", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
+      const ev1 = "EV1";
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("TRAVERSE", [5, 7], ev1);
@@ -154,7 +145,7 @@ describe("Mission high level API", () => {
 
     it("should provide reasonable execution windows for steps in series", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
+      const ev1 = "EV1";
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("TRAVERSE", [5, 7], ev1);
@@ -170,8 +161,8 @@ describe("Mission high level API", () => {
 
     it("should provide 0-indexed execution windows for steps in parallel", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
-      const ev2 = mission.createActor("EV2");
+      const ev1 = "EV1";
+      const ev2 = "EV2";
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("EGRESS", [5, 7], ev2);
@@ -182,8 +173,8 @@ describe("Mission high level API", () => {
 
     it("should provide execution windows for a bunch of steps in parallel", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
-      const ev2 = mission.createActor("EV2");
+      const ev1 = "EV1";
+      const ev2 = "EV2";
 
       const step1 = mission.createStep("EGRESS", [0, 2], ev1);
       const step2 = mission.createStep("EGRESS", [1, 3], ev2);
@@ -202,7 +193,7 @@ describe("Mission high level API", () => {
 
     it("should provide execution windows for nested substeps", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
+      const ev1 = "EV1";
 
       const egress = mission.createStep("EGRESS", [15, 20], ev1);
       const uia = egress.createStep("work UIA", [4, 6], ev1);
@@ -219,8 +210,8 @@ describe("Mission high level API", () => {
 
     it.skip("should append substeps to the new actor when changing actors", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
-      const ev2 = mission.createActor("EV2");
+      const ev1 = "EV1";
+      const ev2 = "EV2";
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("TRAVERSE", [5, 7], ev2);
@@ -235,7 +226,7 @@ describe("Mission high level API", () => {
 
     it.skip("should reorder steps with the same actor", () => {
       const mission = new Mission();
-      const ev1 = mission.createActor("EV1");
+      const ev1 = "EV1";
 
       // create 5 substeps under the mission
       for (let i = 0; i++; i <= 5) {
@@ -254,10 +245,33 @@ describe("Mission high level API", () => {
     });
   });
 
+  describe("#appendTask", () => {
+    it("should create 2 sync points one actor two tasks", () => {
+      const mission = new Mission();
+      const ev1 = "EV1";
+
+      appendTask(mission, ev1, "EGRESS", [0, 10]);
+      appendTask(mission, ev1, "TRAVERSE", [0, 10]);
+
+      expect(syncPoints(mission)).to.have.lengthOf(2);
+    });
+
+    it("should create 1 sync point for two actors 1 task each", () => {
+      const mission = new Mission();
+      const ev1 = "EV1";
+      const ev2 = "EV2";
+
+      appendTask(mission, ev1, "EGRESS", [0, 10]);
+      appendTask(mission, ev2, "EGRESS", [0, 10]);
+
+      expect(syncPoints(mission)).to.have.lengthOf(1);
+    });
+  })
+
   // it("should create 1 step for EV1 and 2 steps (nested) for EV2", () => {
   //   const mission = new Mission();
-  //   const actor1 = mission.createActor("EV1");
-  //   const actor2 = mission.createActor("EV2");
+  //   const actor1 = "EV1";
+  //   const actor2 = "EV2";
 
   //   const duration1 = [10, 20];
   //   const description1 = "A1";
@@ -297,7 +311,7 @@ describe("Mission high level API", () => {
 
   // it("should create 3 steps for EV 2 (with 2 nested)", () => {
   //   const mission = new Mission();
-  //   const actor2 = mission.createActor("EV2");
+  //   const actor2 = "EV2";
 
   //   const duration1 = [10, 20];
   //   const description1 = "A1";
@@ -338,7 +352,7 @@ describe("Mission high level API", () => {
 
   // it("should create 3 nested steps for EV 2", () => {
   //   const mission = new Mission();
-  //   const actor2 = mission.createActor("EV2");
+  //   const actor2 = "EV2";
 
   //   const duration1 = [10, 20];
   //   const description1 = "A1";
@@ -374,7 +388,7 @@ describe("Mission high level API", () => {
 
   // it("should create steps", () => {
   //   const mission = new Mission();
-  //   const actor = mission.createActor("EV1");
+  //   const actor = "EV1";
   //   const duration = [10, 20];
   //   const step = mission.createStep(actor, "EGRESS/SETUP", duration);
   //   expect(mission.timing(step).duration).to.deep.equal(duration);
@@ -389,7 +403,7 @@ describe("Mission high level API", () => {
 
   // it("should compose steps", () => {
   //   const mission = new Mission();
-  //   const actor = mission.createActor("EV1");
+  //   const actor = "EV1";
   //   const step1 = mission.createStep(actor, "EGRESS/SETUP");
   //   const step2 = mission.createStep(actor, "MISSE7");
   //   // add a constraint between the steps
@@ -398,7 +412,7 @@ describe("Mission high level API", () => {
 
   // it("should append steps", () => {
   //   const mission = new Mission();
-  //   const actor = mission.createActor("EV1");
+  //   const actor = "EV1";
   //   const step1 = mission.createStep(actor, "EGRESS/SETUP");
   //   const step2 = mission.createStep(actor, "MISSE7");
   //   // put them at the end of whatever is already there
@@ -407,15 +421,15 @@ describe("Mission high level API", () => {
 
   // it("should create substeps", () => {
   //   const mission = new Mission();
-  //   const actor = mission.createActor("EV1");
+  //   const actor = "EV1";
   //   const step1 = mission.createStep(actor, "EGRESS/SETUP");
   //   const substep = mission.createSubstep(step1, "Activate ORU");
   // });
 
   // it("should put steps by different actors in parallel", () => {
   //   const mission = new Mission();
-  //   const ev1 = mission.createActor("EV1");
-  //   const ev2 = mission.createActor("EV2");
+  //   const ev1 = "EV1";
+  //   const ev2 = "EV2";
 
   //   const egress = mission.createSync("EGRESS/SETUP");
   //   createStep(egress, ev1, "DON HELMET");
