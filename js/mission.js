@@ -4,6 +4,10 @@
 
 const { Episode, Interval, Schedule } = require("./index");
 
+/** An interval for a Step that does not have a time requirement */
+const ANYTIME_INTERVAL = [0, Number.MAX_VALUE];
+exports.ANYTIME_INTERVAL = ANYTIME_INTERVAL;
+
 /**
  * An action in an EVA timeline. Should not be created directly, rather use a `Mission` or an existing `Step` to call `createStep` to create a new Step.
  *
@@ -79,7 +83,7 @@ class Step {
     if (!this._parent) {
       // we'll use the existing this.schedule
       // represents the limiting consumable
-      this._episode = this.schedule.addEpisode([0, Number.MAX_VALUE]);
+      this._episode = this.schedule.addEpisode(ANYTIME_INTERVAL);
     } else {
       // replace our schedule with a ref to the parent's schedule
       this.schedule = parent.schedule;
@@ -339,7 +343,7 @@ class Step {
       // create a constraint between start of this step and the first substep
       this.schedule.addConstraint(this.start, substeps[0].start);
       // constraint between end of the last substep and this step. allow for any amount of time between the last substep and the end of this step
-      this.schedule.addConstraint(substeps[substeps.length - 1].end, this.end, [0, Number.MAX_VALUE]);
+      this.schedule.addConstraint(substeps[substeps.length - 1].end, this.end, ANYTIME_INTERVAL);
 
       // recurse through substeps
       substeps.forEach(s => s.construct());
@@ -385,23 +389,55 @@ class Step {
 module.exports.Step = Step;
 
 /**
- * Create a new Mission (which is just a special kind of Step)
- * @returns {Step}
- */
-module.exports.Mission = function Mission() {
-  const mission = new Step('LIM_CONS');
-  // ensure a 0-indexed PET
-  mission.startedAt(0.);
-  return mission;
-};
-
-/**
  * An actor in the timeline.
  */
 class Actor {
-  name = null;
+  name = "";
   constructor(name = "") {
     this.name = name;
   }
 }
+
 module.exports.Actor = Actor;
+
+const allActors = new Actor("ALL");
+
+/**
+ * Create a new Mission (which is just a special Step with sane defaults)
+ * @returns {Step}
+ */
+module.exports.Mission = function Mission() {
+  const mission = new Step('LIM_CONS', ANYTIME_INTERVAL);
+  // ensure a 0-indexed PET
+  mission.startedAt(0.);
+  // create a branch for all children to live on
+  mission.createStep("ALL", ANYTIME_INTERVAL, allActors);
+  return mission;
+};
+
+/**
+ *
+ * @param {Step} mission The mission
+ * @param {string[]} actors A list of actors working on this step
+ * @param {string} description
+ * @param {number[]} duration [lower, upper] interval
+ */
+function appendTask(mission, actors, description, duration) {
+  // the main line through all tasks
+  // TODO: draw ASCII art
+  // const main = mission.getOrCreateBranch(allActors);
+
+  if (actors.length === 1) {
+    // put the step on the main branch
+    const mainWrapper = mission.createStep(`MAIN__${description}`, ANYTIME_INTERVAL, allActors);
+    // create the actual task
+    const task = mainWrapper.createStep(description, duration, actor[0]);
+    return task;
+  }
+
+  //
+}
+
+function createSyncBlock(mission, tasks) {
+  //
+}

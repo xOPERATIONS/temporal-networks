@@ -7,11 +7,15 @@ set -e
 GREEN='\033[1;32m'
 NC='\033[0m'
 
+# TODO: fuck just append mission.js to pkg/index.js
+# loop through js. append to index.js or index.d.ts based on file extension
+
+
 # copy the JS files. no transpiling required
 cp ./js/* ./pkg/
 
 # add a couple lines to the end of the generated JS to import and expose the new JS
-echo "const {Mission,Step,Actor}=require('./mission');module.exports.Mission=Mission;module.exports.Step=Step;module.exports.Actor=Actor;" >> pkg/index.js
+echo "const {Mission,Step,Actor,ANYTIME_INTERVAL}=require('./mission');module.exports.Mission=Mission;module.exports.Step=Step;module.exports.Actor=Actor;module.exports.ANYTIME_INTERVAL=ANYTIME_INTERVAL;" >> pkg/index.js
 
 # rewrite package.json to add the files from js/
 # good resource to play with `jq`: https://jqplay.org/
