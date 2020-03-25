@@ -62,10 +62,15 @@ export class Step {
     parent = null,
     root = null,
     actor = null,
+    schedule = null
   ) {
     this.description = description;
     this.duration = duration;
     this.slack = slack;
+
+    if (schedule) {
+      this.schedule = schedule;
+    }
 
     if (actor) {
       this.actor = actor;
@@ -342,6 +347,10 @@ export class Step {
       errors: string[];
       warnings: string[];
     };
+    ret = {
+      errors: [],
+      warnings: []
+    };
 
     for (const [a, substeps] of this._branches.entries()) {
       const minDuration = substeps.reduce((prev, curr) => {
@@ -375,8 +384,7 @@ const allActors = "ALL";
  * Create a new mission (which is just a special Step with sane defaults)
  */
 export function createMission(schedule: Schedule) {
-  const mission = new Step('LIM_CONS', ANYTIME_INTERVAL);
-  mission.schedule = schedule;
+  const mission = new Step('LIM_CONS', ANYTIME_INTERVAL, null, null, null, null, schedule);
   // ensure a 0-indexed PET
   mission.startedAt(0.);
   // create a branch for all children to live on
