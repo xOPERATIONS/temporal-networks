@@ -7,14 +7,8 @@ set -e
 GREEN='\033[1;32m'
 NC='\033[0m'
 
-for f in lib/*.js
-do
-    cat $f >> pkg/index.js
-done
+echo -ne "export { createMission } from './mission.js';\n" >> ./pkg/index.js
 
-for f in lib/*.d.ts
-do
-    cat $f >> pkg/index.d.ts
-done
+cat ./pkg/package.json | jq '.files = .files + ["mission.js", "mission.d.ts"]' | cat > ./tmp.json && mv ./tmp.json ./pkg/package.json
 
 echo -e "${GREEN}Patched generated pkg/ to include files from js/${NC}"

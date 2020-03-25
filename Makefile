@@ -7,8 +7,9 @@ all: build
 
 # target: build - build a JS agnostic package
 build:
-	rm -rf pkg/
-	npx wasm-pack build --scope xoperations --target nodejs --out-name index
+	@rm -rf pkg/*
+	@npx wasm-pack build --scope xoperations --target bundler --out-name index
+	@npx tsc --outDir pkg/ -d
 	@sh ./bin/extendpkg.sh
 
 # target: doc - create docs

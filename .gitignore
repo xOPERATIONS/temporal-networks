@@ -10,3 +10,6 @@
 
 # JS stuff from testing
 node_modules/
+
+# webpack'd distributable
+**/dist/

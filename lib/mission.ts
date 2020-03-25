@@ -1,10 +1,8 @@
-/**
- * Running in the context of ./pkg after the wasm has been built. This file gets copied into the JS that wasm-pack generates
- */
+// note: you need to build the project once (`make`) to make sure 'pkg/index' exists
+import { Schedule } from '../pkg/index';
 
 /** An interval for a Step that does not have a time requirement */
-const ANYTIME_INTERVAL = [0, Number.MAX_VALUE];
-module.exports.ANYTIME_INTERVAL = ANYTIME_INTERVAL;
+const ANYTIME_INTERVAL = new Float64Array([0, Number.MAX_VALUE]);
 
 /**
  * An action in an EVA timeline. Should not be created directly, rather use a `Mission` or an existing `Step` to call `createStep` to create a new Step.
@@ -33,15 +31,15 @@ module.exports.ANYTIME_INTERVAL = ANYTIME_INTERVAL;
  *
  * Note that in the first example above, each activity has a start and end node. The same is true for tasks, as shown in the second example. In fact, all Steps have a definite start and end node. The methods in this class automatically handle start and end nodes for you.
  */
-class Step {
+export class Step {
   /** Human readable description */
   description = "";
   /** duration of the episode represented by this step */
-  duration = [0, Number.MAX_VALUE];
+  duration = ANYTIME_INTERVAL;
   /** "extra" time interval [before, after] this step. This allows wiggle room between steps. Defaults to no wiggle room */
   slack = [[0, 0], [0, 0]];
   /** the actual temporal network. only the root Mission should have a schedule. all other steps will reference the root's schedule */
-  schedule = new Schedule();
+  schedule: Schedule;
   /** who is performing this step */
   actor = "";
   /** the parent Step to this */
@@ -58,7 +56,7 @@ class Step {
 
   constructor(
     description = "",
-    duration = [0, Number.MAX_VALUE],
+    duration = ANYTIME_INTERVAL,
     slack = [[0, 0], [0, 0]],
     /** typeof {Step} */
     parent = null,
@@ -100,7 +98,7 @@ class Step {
    * An event ID representing the start of this Step
    * @returns {number}
    */
-  get start() {
+  get start(): number {
     return this._episode.start;
   }
 
@@ -108,7 +106,7 @@ class Step {
    * An event ID representing the end of this Step
    * @returns {number}
    */
-  get end() {
+  get end(): number {
     return this._episode.end;
   }
 
@@ -140,7 +138,7 @@ class Step {
    * Mark this step as having been started at a known phased elapsed time (PET)
    * @param {number} pet The PET when this step was started
    */
-  startedAt(pet) {
+  startedAt(pet: number) {
     this.schedule.commitEvent(this.start, pet);
   }
 
@@ -148,7 +146,7 @@ class Step {
    * Mark this step as having been completed at a known phased elapsed time (PET)
    * @param {number} pet The PET when this step was completed
    */
-  completedAt(pet) {
+  completedAt(pet: number) {
     this.schedule.commitEvent(this.end, pet);
   }
 
@@ -175,7 +173,7 @@ class Step {
    * Change the actor for this step
    * @param {string} actor
    */
-  updateActor(actor) {
+  updateActor(actor: string) {
     // TODO: maybe move the substep to the same position in the other branch?
     this._parent.changeActor(this, actor);
   }
@@ -185,7 +183,7 @@ class Step {
    * @param {Step} substep
    * @param {string} actor
    */
-  changeActor(substep, actor) {
+  changeActor(substep: Step, actor: string) {
     // break the constraints between the substep and any other steps
     // TODO: probably need to pop immediate siblings too?
     substep.pop();
@@ -203,7 +201,7 @@ class Step {
    * @param {number} position the 0-indexed position of the moved Step in the new branch
    * @param {string} actor the Step's actor (if the actor is changing)
    */
-  reorderStep(parent, child, position, actor = null) {
+  reorderStep(parent: Step, child: Step, position: number, actor: string = null) {
     child.pop();
     // TODO: need to pop any immediate siblings too?
 
@@ -215,7 +213,7 @@ class Step {
       branch.push(child)
     } else {
       // TODO: is this right?
-      branch.splice(position, child);
+      // branch.splice(position, child);
     }
 
     parent.setOrCreateBranch(a, branch);
@@ -226,7 +224,7 @@ class Step {
    * @param {string} actor
    * @returns {Step[]}
    */
-  getOrCreateBranch(actor) {
+  getOrCreateBranch(actor: string): Step[] {
     // make sure the actor's branch exists
     if (!this._branches.has(actor)) {
       // create a branch for the actor
@@ -240,7 +238,7 @@ class Step {
    * @param {string} actor
    * @param {Step[]} substeps
    */
-  setOrCreateBranch(actor, substeps) {
+  setOrCreateBranch(actor: string, substeps: Step[]) {
     this._branches.set(actor, substeps);
   }
 
@@ -251,10 +249,10 @@ class Step {
    * @param {string} actor
    * @param {number[][]} slack [before, after] interval slack
    */
-  createStep(description = "", duration = [], actor = null, slack = [[0, 0], [0, 0]]) {
+  createStep(description: string = "", duration: number[] = [], actor: string = null, slack: number[][] = [[0, 0], [0, 0]]) {
     let a = actor || this.actor;
 
-    const step = new Step(description, duration, slack, this, this._root, a);
+    const step = new Step(description, new Float64Array(duration), slack, this, this._root, a);
 
     const branch = this.getOrCreateBranch(a);
     branch.push(step);
@@ -265,10 +263,8 @@ class Step {
 
   /**
    * Append a substep to the end of the list for an actor
-   * @param {Step} substep
-   * @param {string} actor
    */
-  pushSubstep(substep, actor) {
+  pushSubstep(substep: Step, actor: string) {
     //
   }
 
@@ -283,9 +279,8 @@ class Step {
 
   /**
    * Get the planned start time for this step as a range of [earliest, latest]
-   * @returns {number[]}
    */
-  plannedStartWindow() {
+  plannedStartWindow(): number[] {
     // actually create the graph
     this._root.construct();
 
@@ -310,7 +305,7 @@ class Step {
       }, 0);
 
       if (minDuration > this.duration[1]) {
-        throw new Error(`The minimum duration of substeps cannot exceed the max duration of this step | ${this.actor.name} ${this.description}: ${this.duration[1]} vs. substeps: ${minDuration}`);
+        throw new Error(`The minimum duration of substeps cannot exceed the max duration of this step | ${this.actor} ${this.description}: ${this.duration[1]} vs. substeps: ${minDuration}`);
       }
 
       // handle slack time between substeps
@@ -341,12 +336,11 @@ class Step {
 
   /**
    * Check the timeline for internal consistency with respect to parent<->child relationships. Returns issues found.
-   * @returns {object[string[]]}
    */
   validate() {
-    const ret = {
-      errors: [],
-      warnings: [],
+    let ret: {
+      errors: string[];
+      warnings: string[];
     };
 
     for (const [a, substeps] of this._branches.entries()) {
@@ -358,49 +352,42 @@ class Step {
       }, 0);
 
       if (minDuration > this.duration[1]) {
-        ret.errors.push(`The minimum duration of substeps cannot exceed the max duration of this step | ${this.actor.name} ${this.description}: ${this.duration[1]} vs. substeps: ${minDuration}`);
+        ret.errors.push(`The minimum duration of substeps cannot exceed the max duration of this step | ${this.actor} ${this.description}: ${this.duration[1]} vs. substeps: ${minDuration}`);
       }
 
       if (maxDuration > this.duration[1]) {
-        ret.warnings.push(`The maximum duration of substeps should not exceed the max duration of this step | ${this.actor.name} ${this.description}: ${this.duration[1]} vs. substeps: ${maxDuration}`);
+        ret.warnings.push(`The maximum duration of substeps should not exceed the max duration of this step | ${this.actor} ${this.description}: ${this.duration[1]} vs. substeps: ${maxDuration}`);
       }
 
       // recurse through substeps
-      const subrets = substeps.map(s => s.validate());
-      ret.errors = ret.errors.concat(subrets.map(s => s.errors)).flat();
-      ret.warnings = ret.warnings.concat(subrets.map(s => s.warnings)).flat();
+      const subrets = substeps.map((s: Step) => s.validate());
+      ret.errors = ret.errors.concat(subrets.map((s: typeof ret) => s.errors)).flat();
+      ret.warnings = ret.warnings.concat(subrets.map((s: typeof ret) => s.warnings)).flat();
     }
 
     return ret;
   };
 }
 
-module.exports.Step = Step;
-
 const allActors = "ALL";
 
 /**
- * Create a new Mission (which is just a special Step with sane defaults)
- * @returns {Step}
+ * Create a new mission (which is just a special Step with sane defaults)
  */
-module.exports.Mission = function Mission() {
+export function createMission(schedule: Schedule) {
   const mission = new Step('LIM_CONS', ANYTIME_INTERVAL);
+  mission.schedule = schedule;
   // ensure a 0-indexed PET
   mission.startedAt(0.);
   // create a branch for all children to live on
-  mission.createStep("ALL", ANYTIME_INTERVAL, allActors);
+  mission.createStep("ALL", [0, Number.MAX_VALUE], allActors);
   return mission;
 };
 
 /**
  * Append a task to the mission timeline
- * @param {Step} mission The mission
- * @param {string} actor A list of actors working on this step
- * @param {string} description
- * @param {number[]} duration [lower, upper] interval
- * @returns {Step}
  */
-function appendTask(mission, actor, description, duration) {
+export function appendTask(mission: Step, actor: string, description: string, duration: number[]): Step {
   // the main line through all tasks
   const main = mission.getOrCreateBranch(allActors);
 
@@ -416,20 +403,14 @@ function appendTask(mission, actor, description, duration) {
   }
 
   // either the last sync point already has a task for this actor or no sync points have been created. create a new one
-  const syncWrapper = mission.createStep(`MAIN__${description}`, ANYTIME_INTERVAL, allActors);
+  const syncWrapper = mission.createStep(`MAIN__${description}`, [0, Number.MAX_VALUE], allActors);
   const task = syncWrapper.createStep(description, duration, actor);
   return task;
 }
 
-module.exports.appendTask = appendTask;
-
 /**
  * Get the sync points for a mission
- * @param {Step} mission
- * @returns {Step[]}
  */
-function syncPoints(mission) {
+export function syncPoints(mission: Step): Step[] {
   return mission.getOrCreateBranch(allActors);
 }
-
-module.exports.syncPoints = syncPoints;
