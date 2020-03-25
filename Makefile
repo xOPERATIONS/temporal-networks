@@ -44,7 +44,7 @@ test.wasm:
 	 npx wasm-pack test --node
 
 # target: test.js - run tests against wasm builds from the JS side
-test.js:
+test.js: build
 	@rm -rf tmp/*
 	@npx wasm-pack build --target nodejs --out-name index --out-dir tmp
 	@npx tsc --module CommonJS --target ES5 --outDir tmp
