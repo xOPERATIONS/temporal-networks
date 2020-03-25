@@ -1,5 +1,5 @@
 // note: you need to build the project once (`make`) to make sure 'pkg/index' exists
-import { Schedule } from '../pkg/index';
+import { Schedule } from 'pkg/index';
 
 /** An interval for a Step that does not have a time requirement */
 const ANYTIME_INTERVAL = new Float64Array([0, Number.MAX_VALUE]);

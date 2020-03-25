@@ -1,8 +1,7 @@
-const { expect } = require("chai");
-const { install, Interval, Schedule, Episode } = require("../pkg");
+import { install, Interval, Schedule, Episode } from "../pkg";
 
 describe("Interval", () => {
-  before(install);
+  beforeAll(install);
 
   it("can be instantiated", () => {
     const i = new Interval(0, 0);

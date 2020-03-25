@@ -13,3 +13,5 @@ node_modules/
 
 # webpack'd distributable
 **/dist/
+
+**/tmp/

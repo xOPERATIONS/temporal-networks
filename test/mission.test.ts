@@ -1,13 +1,12 @@
-const { expect } = require("chai");
-const { install, appendTask, syncPoints, Actor, Mission, Step } = require("../pkg");
+import { install, appendTask, syncPoints, Mission, Step } from "../tmp";
 
 describe("Mission high level API", () => {
-  before(install);
+  beforeAll(install);
 
   it("should create a mission", () => {
     const mission = new Mission();
-    expect(mission).to.be.ok;
-    expect(mission instanceof Step).to.be.true;
+    expect(mission).toBeDefined();
+    expect(mission instanceof Step).toBeTruthy();
   });
 
   describe("Mission", () => {
@@ -19,8 +18,8 @@ describe("Mission high level API", () => {
 
       const step1 = mission.createStep(description1, duration1, actor1);
 
-      expect(step1).to.be.ok;
-      expect(step1.actor).to.equal(actor1);
+      expect(step1).toBeDefined();
+      expect(step1.actor).toEqual(actor1);
     });
 
     it("should create a step without an actor", () => {
@@ -30,8 +29,8 @@ describe("Mission high level API", () => {
 
       const step1 = mission.createStep(description1, duration1);
 
-      expect(step1).to.be.ok;
-      expect(step1.actor).to.be.empty;
+      expect(step1).toBeDefined();
+      expect(step1.actor).toEqual("");
     });
   });
 
@@ -44,7 +43,7 @@ describe("Mission high level API", () => {
 
       const step1 = mission.createStep(description1, duration1, actor1);
 
-      expect(step1.plannedDuration()).to.deep.equal(duration1);
+      expect(step1.plannedDuration()).toEqual(duration1);
     });
 
     it("should report a description", () => {
@@ -90,7 +89,7 @@ describe("Mission high level API", () => {
 
       // with the slack time built into substeps, 3 is still is a valid duration
       // the substep still can't exceed the parent
-      expect(substep.plannedDuration()).to.deep.equal([3, 8]);
+      expect(substep.plannedDuration()).toEqual([3, 8]);
     });
 
     it("should let you know of potential problems", () => {
@@ -123,13 +122,13 @@ describe("Mission high level API", () => {
       const mission = new Mission();
 
       // as defined when a mission is created
-      expect(mission.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(mission.plannedStartWindow()).toEqual([0, 0]);
 
       const ev1 = "EV1";
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
 
       // step1 should start immediately
-      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step1.plannedStartWindow()).toEqual([0, 0]);
     });
 
     it("should provide 0-indexed execution windows", () => {
@@ -139,8 +138,8 @@ describe("Mission high level API", () => {
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("TRAVERSE", [5, 7], ev1);
 
-      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(step2.plannedStartWindow()).to.deep.equal([1, 3]);
+      expect(step1.plannedStartWindow()).toEqual([0, 0]);
+      expect(step2.plannedStartWindow()).toEqual([1, 3]);
     });
 
     it("should provide reasonable execution windows for steps in series", () => {
@@ -152,11 +151,11 @@ describe("Mission high level API", () => {
       const step3 = mission.createStep("STATION", [5, 7], ev1);
 
       step1.completedAt(2);
-      expect(step2.plannedStartWindow()).to.deep.equal([2, 2]);
-      expect(step3.plannedStartWindow()).to.deep.equal([7, 9]);
+      expect(step2.plannedStartWindow()).toEqual([2, 2]);
+      expect(step3.plannedStartWindow()).toEqual([7, 9]);
 
       step2.completedAt(8.);
-      expect(step3.plannedStartWindow()).to.deep.equal([8, 8]);
+      expect(step3.plannedStartWindow()).toEqual([8, 8]);
     });
 
     it("should provide 0-indexed execution windows for steps in parallel", () => {
@@ -167,8 +166,8 @@ describe("Mission high level API", () => {
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("EGRESS", [5, 7], ev2);
 
-      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(step2.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step1.plannedStartWindow()).toEqual([0, 0]);
+      expect(step2.plannedStartWindow()).toEqual([0, 0]);
     });
 
     it("should provide execution windows for a bunch of steps in parallel", () => {
@@ -183,12 +182,12 @@ describe("Mission high level API", () => {
       const step5 = mission.createStep("STATION", [8, 10], ev1);
       const step6 = mission.createStep("STATION", [9, 11], ev2);
 
-      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(step2.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(step3.plannedStartWindow()).to.deep.equal([0, 2]);
-      expect(step4.plannedStartWindow()).to.deep.equal([1, 3]);
-      expect(step5.plannedStartWindow()).to.deep.equal([4, 8]);
-      expect(step6.plannedStartWindow()).to.deep.equal([6, 10]);
+      expect(step1.plannedStartWindow()).toEqual([0, 0]);
+      expect(step2.plannedStartWindow()).toEqual([0, 0]);
+      expect(step3.plannedStartWindow()).toEqual([0, 2]);
+      expect(step4.plannedStartWindow()).toEqual([1, 3]);
+      expect(step5.plannedStartWindow()).toEqual([4, 8]);
+      expect(step6.plannedStartWindow()).toEqual([6, 10]);
     });
 
     it("should provide execution windows for nested substeps", () => {
@@ -201,11 +200,11 @@ describe("Mission high level API", () => {
       const pressButton = uia.createStep("press button", [3, 3], ev1);
       const depress = egress.createStep("start depress", [11, 14], ev1);
 
-      expect(egress.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(uia.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(turnKnob.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(pressButton.plannedStartWindow()).to.deep.equal([1, 3]);
-      expect(depress.plannedStartWindow()).to.deep.equal([4, 6]);
+      expect(egress.plannedStartWindow()).toEqual([0, 0]);
+      expect(uia.plannedStartWindow()).toEqual([0, 0]);
+      expect(turnKnob.plannedStartWindow()).toEqual([0, 0]);
+      expect(pressButton.plannedStartWindow()).toEqual([1, 3]);
+      expect(depress.plannedStartWindow()).toEqual([4, 6]);
     });
 
     it.skip("should append substeps to the new actor when changing actors", () => {
@@ -215,13 +214,13 @@ describe("Mission high level API", () => {
 
       const step1 = mission.createStep("EGRESS", [1, 3], ev1);
       const step2 = mission.createStep("TRAVERSE", [5, 7], ev2);
-      expect(step1.plannedStartWindow()).to.deep.equal([0, 0]);
+      expect(step1.plannedStartWindow()).toEqual([0, 0]);
 
       mission.changeActor(step1, ev2);
 
       // step2 should start immediately, while step1 will start after step2 has finished
-      expect(step2.plannedStartWindow()).to.deep.equal([0, 0]);
-      expect(step1.plannedStartWindow()).to.deep.equal([1, 3]);
+      expect(step2.plannedStartWindow()).toEqual([0, 0]);
+      expect(step1.plannedStartWindow()).toEqual([1, 3]);
     });
 
     it.skip("should reorder steps with the same actor", () => {
@@ -235,13 +234,13 @@ describe("Mission high level API", () => {
 
       // this substep should be last
       const substepToMove = mission.createStep("mover", [1, 1], ev1);
-      expect(substepToMove.plannedStartWindow()).to.deep.equal([5, 5]);
+      expect(substepToMove.plannedStartWindow()).toEqual([5, 5]);
 
       // move the substep
       mission.reorderStep(mission, substepToMove, 3);
 
       // use the planned start time to see if it moved
-      expect(substepToMove.plannedStartWindow()).to.deep.equal([3, 3]);
+      expect(substepToMove.plannedStartWindow()).toEqual([3, 3]);
     });
   });
 
@@ -277,26 +276,26 @@ describe("Mission high level API", () => {
   //   const description1 = "A1";
   //   const step1 = mission.createStep(description1, duration1, actor1);
 
-  //   expect(step1).to.be.ok;
+  //   expect(step1).toBeDefined();
   //   expect(step1.description).to.equal(description1);
-  //   expect(step1.duration()).to.deep.equal(duration1);
+  //   expect(step1.duration()).toEqual(duration1);
 
   //   const duration2 = [10, 20];
   //   const description2 = "A2";
   //   const step2 = mission.createStep(description2, duration2, actor2);
 
-  //   expect(step2).to.be.ok;
+  //   expect(step2).toBeDefined();
   //   expect(step2.description).to.equal(description2);
-  //   expect(step2.duration()).to.deep.equal(duration2);
+  //   expect(step2.duration()).toEqual(duration2);
 
   //   const duration3 = [10, 20];
   //   const description3 = "A3";
   //   const step3 = mission.createStep(description3, duration3, actor2);
 
   //   //I expect that since the actors are the same
-  //   expect(step3).to.be.ok;
+  //   expect(step3).toBeDefined();
   //   expect(step3.description).to.equal(description3);
-  //   expect(step3.duration()).to.deep.equal(duration3);
+  //   expect(step3.duration()).toEqual(duration3);
 
   //   //makeSubStep(parent, child)
   //   //here we could set step3 to be the substep of step2. Step 3 is still a step, just placing it as a child of step2. Thus implying it would be (A2s -> (A3s -> A3e) -> A2e)
@@ -317,17 +316,17 @@ describe("Mission high level API", () => {
   //   const description1 = "A1";
   //   const step1 = mission.createStep(description1, duration1, actor2);
 
-  //   expect(step1).to.be.ok;
+  //   expect(step1).toBeDefined();
   //   expect(step1.description).to.equal(description1);
-  //   expect(step1.duration()).to.deep.equal(duration1);
+  //   expect(step1.duration()).toEqual(duration1);
 
   //   const duration2 = [10, 20];
   //   const description2 = "A2";
   //   const step2 = mission.createStep(description2, duration2, actor2);
 
-  //   expect(step2).to.be.ok;
+  //   expect(step2).toBeDefined();
   //   expect(step2.description).to.equal(description2);
-  //   expect(step2.duration()).to.deep.equal(duration2);
+  //   expect(step2.duration()).toEqual(duration2);
 
   //   // slide 16, linking A1 - A2 as a 'sync'. This should be implied by the fact they are different steps. Any step to step should imply a sync point.
   //   mission.linkSteps(step1, step2);
@@ -341,9 +340,9 @@ describe("Mission high level API", () => {
   //   const step3 = mission.createStep(description3, duration3, actor2);
 
   //   //I expect that since the actors are the same
-  //   expect(step3).to.be.ok;
+  //   expect(step3).toBeDefined();
   //   expect(step3.description).to.equal(description3);
-  //   expect(step3.duration()).to.deep.equal(duration3);
+  //   expect(step3.duration()).toEqual(duration3);
 
   //   //makeSubStep(parent, child)
   //   //here we could set step3 to be the substep of step2. Step 3 is still a step, just placing it as a child of step2. Thus implying it would be (A2s -> (A3s -> A3e) -> A2e)
@@ -358,17 +357,17 @@ describe("Mission high level API", () => {
   //   const description1 = "A1";
   //   const step1 = mission.createStep(description1, duration1, actor2);
 
-  //   expect(step1).to.be.ok;
+  //   expect(step1).toBeDefined();
   //   expect(step1.description).to.equal(description1);
-  //   expect(step1.duration()).to.deep.equal(duration1);
+  //   expect(step1.duration()).toEqual(duration1);
 
   //   const duration2 = [10, 20];
   //   const description2 = "A2";
   //   const step2 = mission.createStep(description2, duration2, actor2);
 
-  //   expect(step2).to.be.ok;
+  //   expect(step2).toBeDefined();
   //   expect(step2.description).to.equal(description2);
-  //   expect(step2.duration()).to.deep.equal(duration2);
+  //   expect(step2.duration()).toEqual(duration2);
 
   //   mission.makeSubStep(step1, step2); //makeSubStep(parent, child)
 
@@ -377,9 +376,9 @@ describe("Mission high level API", () => {
   //   const step3 = mission.createStep(description3, duration3, actor2);
 
   //   //I expect that since the actors are the same
-  //   expect(step3).to.be.ok;
+  //   expect(step3).toBeDefined();
   //   expect(step3.description).to.equal(description3);
-  //   expect(step3.duration()).to.deep.equal(duration3);
+  //   expect(step3.duration()).toEqual(duration3);
 
   //   //makeSubStep(parent, child)
   //   //here we could set step3 to be the substep of step2. Step 3 is still a step, just placing it as a child of step2. Thus implying it would be (A2s -> (A3s -> A3e) -> A2e)
@@ -391,8 +390,8 @@ describe("Mission high level API", () => {
   //   const actor = "EV1";
   //   const duration = [10, 20];
   //   const step = mission.createStep(actor, "EGRESS/SETUP", duration);
-  //   expect(mission.timing(step).duration).to.deep.equal(duration);
-  //   expect(mission.timing(step).execution_window).to.deep.equal(duration);
+  //   expect(mission.timing(step).duration).toEqual(duration);
+  //   expect(mission.timing(step).execution_window).toEqual(duration);
   // });
 
   // it("should have a limiting consumable by default", () => {

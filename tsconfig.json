@@ -1,12 +1,23 @@
 {
     "compilerOptions": {
+        "baseUrl": ".",
         "downlevelIteration": true,
+        "esModuleInterop": true,
         "lib": [
             "ES2019",
             "DOM"
         ],
         "module": "ES6",
+        "moduleResolution": "node",
         "noImplicitAny": false,
+        "paths": {
+            "pkg/*": [
+                "./pkg/*"
+            ],
+            "tmp/*": [
+                "./tmp/*"
+            ]
+        },
         "sourceMap": true,
         "target": "ES6",
     },
@@ -15,6 +26,7 @@
         "pkg"
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "tmp"
     ]
 }
